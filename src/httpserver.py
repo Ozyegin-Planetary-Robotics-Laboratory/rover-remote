@@ -5,7 +5,8 @@ import os
 
 # Configuration
 PORT = 8060
-DIRECTORY = os.path.dirname(os.path.abspath(__file__))  # Current directory
+# Serving the WWW folder
+DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'www')
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):

@@ -2,11 +2,14 @@
 import asyncio
 import websockets
 import json
-import socket
-import signal
+
+# noqa
+# import socket
+# import signal
+
 import os
-import time
-from loco_lib import *
+# import time
+import loco_lib as loco
 
 #try:
 #    from RGBGPIO2 import *
@@ -24,7 +27,7 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
-start_bus()
+loco.start_bus()
 
 
 # Handle WebSocket connections - updated to make path parameter optional
@@ -41,7 +44,10 @@ async def handle_websocket(websocket, path=None):
             print(message)
             try:
                 data = json.loads(message)
-                rgbd= data["rgb"].lstrip('#')
+
+                # noqa
+                # rgbd = data["rgb"].lstrip('#')
+
                 # rgbl = list(int(rgbd[i:i+2], 16) for i in (0, 2, 4))
                 # f = open("rgb.txt","w+")
                 # f.write(rgbd)
@@ -53,7 +59,7 @@ async def handle_websocket(websocket, path=None):
                     linear, angular = data["linear"], data["angular"]
                     #print(can_recive())
                     if linear!=0 or angular!=0:
-                        velocity_control_loco(angular, linear)
+                        loco.velocity_control_loco(angular, linear)
                         await websocket.send(json.dumps({"status": "sent", "linear": linear, "angular": angular}))
                 elif "command" in data:
                     command = data["command"]
@@ -100,11 +106,11 @@ async def shutdown():
         print(f"Closing {len(active_connections)} active connections...")
         await asyncio.gather(*(conn.close(1001, "Server shutdown") for conn in active_connections), return_exceptions=True)
 
-    stop_bus()
+    loco.stop_bus()
 
 # Main function
 async def main():
-    print(f"Web to Motor Bridge")
+    print("Web to Motor Bridge")
     print(f"WebSocket server starting on port {WS_PORT}")
 
     # Create the server

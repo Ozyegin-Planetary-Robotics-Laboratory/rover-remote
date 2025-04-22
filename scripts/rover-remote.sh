@@ -24,8 +24,8 @@ sudo pkill -f httpserver.py
 trap cleanup SIGINT SIGTERM EXIT
 
 # Run the scripts in the foreground (so they stop when the terminal closes)
-./driver.py &
-./httpserver.py &
+./src/driver.py &
+./src/httpserver.py &
 
 # Wait to keep the script running until interrupted
 wait
