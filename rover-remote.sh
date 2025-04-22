@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Navigate to the project directory
-#cd ~/uraz/rover-remote
-
-# Activate the virtual environment
-#source venv/bin/activate
-
 # Function to handle script termination
 cleanup() {
     echo "Stopping scripts..."
