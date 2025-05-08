@@ -21,3 +21,4 @@ This repository contains files that control the CubeMars AK70 motor and use a vi
 
 ### `rover-remote.sh`
 - Starts necessary Python scripts
+- `make run-rover`
