@@ -2,14 +2,17 @@
 import asyncio
 import websockets
 import json
-
-# noqa
-# import socket
-# import signal
-
+import socket
+import signal
 import os
-# import time
-import loco_lib as loco
+import time
+import serial
+import dynamixellib
+
+
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl
+from arm_lib_can import set_velocity_loop, start_bus, start_bus
+
 
 #try:
 #    from RGBGPIO2 import *
@@ -27,11 +30,15 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
-loco.start_bus()
+#start_bus()
+start_devs()
+
+degree=0
 
 
 # Handle WebSocket connections - updated to make path parameter optional
 async def handle_websocket(websocket, path=None):
+    global degree
     client_address = websocket.remote_address
     print(f"New connection from {client_address}")
 
@@ -39,28 +46,61 @@ async def handle_websocket(websocket, path=None):
 
     try:
         await websocket.send(json.dumps({"status": "connected", "message": "Connected to bridge"}))
-
+        change_color(b'x')
+        change_color(b'g')
         async for message in websocket:
-            print(message)
+            #print(message)
             try:
                 data = json.loads(message)
+                rgbd= data["rgb"]
+                arm_com = data["arm_command"]
+                print(arm_com)
+                motor_params = data["motorparams"]
+                if rgbd == 'red':
+                    change_color(b'r')
+                if rgbd == 'green':
+                    change_color(b'g')
+                if rgbd == 'blue':
+                    change_color(b'b')
+                #print(data)
+                if arm_com == 'c':
+                    set_velocity_loop(12, 200, 200)
+                    set_velocity_loop(12, 200, 200)
+                    set_velocity_loop(12, 200, 200)
+                    set_velocity_loop(12, 200, 200)
+                if arm_com == 'v':
+                    set_velocity_loop(13, 200, 200)
+                    set_velocity_loop(13, 200, 200)
+                    set_velocity_loop(13, 200, 200)
+                    set_velocity_loop(13, 200, 200)
+                if arm_com == 'n':
+                    set_velocity_loop(16, 200, 200)
+                    set_velocity_loop(16, 200, 200)
+                    set_velocity_loop(16, 200, 200)
+                    set_velocity_loop(16, 200, 200)
+                if arm_com == 'b':
+                    set_velocity_loop(15, 200, 200)
+                    set_velocity_loop(15, 200, 200)
+                    set_velocity_loop(15, 200, 200)
+                    set_velocity_loop(15, 200, 200)
+                if arm_com == 'u':
+                    dynamixellib.move_to_degree(degree+10)
+                    degree=(degree+10)%360
+                if arm_com == 'j':
+                    dynamixellib.move_to_degree(degree-10)
+                    degree=(degree-10)%360
 
-                # noqa
-                # rgbd = data["rgb"].lstrip('#')
+                if arm_com == 'i':
+                    scictl(b'i')
+                if arm_com == 'k':
+                    scictl(b'k')
 
-                # rgbl = list(int(rgbd[i:i+2], 16) for i in (0, 2, 4))
-                # f = open("rgb.txt","w+")
-                # f.write(rgbd)
-                # f.close()
-                #if data["rgb"] !="#000000":
-                #    time.sleep(2)
-                #    os.system(f"python cParam.py 13 {rgbl[1]} & python cParam.py 15 {rgbl[2]} & python cParam.py 18 {rgbl[0]}")
                 if "linear" in data and "angular" in data:
                     linear, angular = data["linear"], data["angular"]
                     #print(can_recive())
-                    if linear!=0 or angular!=0:
-                        loco.velocity_control_loco(angular, linear)
-                        await websocket.send(json.dumps({"status": "sent", "linear": linear, "angular": angular}))
+                    # if linear!=0 or angular!=0:
+                    velocity_control_loco(angular, linear, motor_params)
+                    await websocket.send(json.dumps({"status": "sent", "linear": linear, "angular": angular}))
                 elif "command" in data:
                     command = data["command"]
 
@@ -87,7 +127,7 @@ async def handle_websocket(websocket, path=None):
 
             except Exception as e:
                 print(f"Error processing message: {e}")
-                os.system("resetcan0.sh")
+                os.system("resetcan1.sh")
 
                 await websocket.send(json.dumps({"status": "error", "message": str(e)}))
 
@@ -96,7 +136,9 @@ async def handle_websocket(websocket, path=None):
     finally:
         active_connections.remove(websocket)
         print(f"Connection from {client_address} closed, {len(active_connections)} active connections")
-
+        change_color(b'x')
+        time.sleep(5)
+        change_color(b'r')
 
 # Graceful shutdown
 async def shutdown():
@@ -106,11 +148,10 @@ async def shutdown():
         print(f"Closing {len(active_connections)} active connections...")
         await asyncio.gather(*(conn.close(1001, "Server shutdown") for conn in active_connections), return_exceptions=True)
 
-    loco.stop_bus()
 
 # Main function
 async def main():
-    print("Web to Motor Bridge")
+    print(f"Web to Motor Bridge")
     print(f"WebSocket server starting on port {WS_PORT}")
 
     # Create the server
