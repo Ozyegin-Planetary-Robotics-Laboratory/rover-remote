@@ -8,19 +8,19 @@ from TMotorCANControl.servo_serial import *
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-
-motors_dictionary = {"mv_1": "/dev/ttyUSB0", "mv_2": "/dev/ttyUSB3", "mv_3": "/dev/ttyUSB1", "mv_4": "/dev/ttyUSB2"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB3", "mv_2": "/dev/ttyUSB4", 
+		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB2"}  # Put serial ports. None means no port
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-color_port="/dev/ttyUSB4"
+color_port="/dev/ttyUSB5"
 
-science_port="/dev/ttyUSB5"
+science_port="/dev/ttyUSB6"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)
     def scictl(r):
-        scicer.write(r)
+        sciser.write(r)
     science=True
 except:
     def scictl(r):
@@ -78,7 +78,7 @@ def start_devs():
         for port in port_list:
             dev = TMotorManager_servo_serial(port=port, baud=962100)
             dev_list.append(dev)
-        sleep(0.3)
+        sleep(3)
         for dev in dev_list:
             dev.__enter__()
             dev.enter_velocity_control()
@@ -177,8 +177,12 @@ def sticks_2_velocities(x,
 def velocity_control_loco(x, y, mp):
     global motors_speeds
     l = mp.split(",")
-    
-    velocities = sticks_2_velocities(x, -1*y)
+
+    velocities = sticks_2_velocities(x, y)
+    for i in l:
+        if len(i)>=2:
+            velocities[int(i[0])], velocities[int(i[1])] = velocities[int(i[1])], velocities[int(i[0])]
+
     for i in range(4):
         motor_name = "mv_" + str(i + 1)
         motor_speeds[motor_name] = velocities[i]*((-1)*i%2)
@@ -190,10 +194,8 @@ if __name__ == "__main__":
 
     #start_uart_com()
     #read_motors_dictionary()
-    velocity_control_loco(0.0, 1)
-    velocity_control_loco(0.0, 1)
-    velocity_control_loco(0.0, 1)
-    velocity_control_loco(0.0, 1)
-    velocity_control_loco(0.0, 1)
-
+    start_devs()
+    for _ in range(1800):
+        velocity_control_loco(0.0,0.3, "")
+    #change_color(b'g')
     stop_uart_com()
