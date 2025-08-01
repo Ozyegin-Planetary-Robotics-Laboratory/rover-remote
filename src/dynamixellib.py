@@ -1,72 +1,75 @@
 from dynamixel_sdk import *
+import time
 
-# Constants for MX-64 (Protocol 1.0)
-ADDR_TORQUE_ENABLE      = 24
-ADDR_GOAL_POSITION      = 30
-ADDR_PRESENT_POSITION   = 36
-ADDR_CW_ANGLE_LIMIT     = 6
-ADDR_CCW_ANGLE_LIMIT    = 8
+def set_dynamixel_speed(
+    dxl_id: int,
+    port: str,
+    baudrate: int,
+    speed: int,
+    direction: str = "CW"
+):
+    """
+    Runs a Dynamixel MX-64 motor at a given speed for a duration in Wheel Mode.
 
-PROTOCOL_VERSION        = 1.0
-DXL_ID                  = 1
-BAUDRATE                = 57600
-DEVICENAME              = '/dev/ttyUSB6'
+    Parameters:
+        dxl_id (int): Dynamixel ID
+        port (str): Serial port (e.g., '/dev/ttyUSB0')
+        baudrate (int): Baud rate (e.g., 57600)
+        speed (int): Speed value (0–1023)
+        duration (float): Duration in seconds to run the motor
+        direction (str): 'CW' or 'CCW'
+    """
 
-TORQUE_ENABLE           = 1
-TORQUE_DISABLE          = 0
-DXL_RESOLUTION          = 4096  # 0–4095 corresponds to 0–360°
+    # Protocol and control table
+    PROTOCOL_VERSION = 1.0
+    ADDR_CW_ANGLE_LIMIT = 6
+    ADDR_CCW_ANGLE_LIMIT = 8
+    ADDR_TORQUE_ENABLE = 24
+    ADDR_MOVING_SPEED = 32
 
-def move_to_degree(degree):
-    if not (0 <= degree <= 360):
-        raise ValueError("Degree must be between 0 and 360")
-
-    position = int((degree / 360.0) * (DXL_RESOLUTION - 1))
-
-    # Initialize port and packet handlers
-    portHandler = PortHandler(DEVICENAME)
+    portHandler = PortHandler(port)
     packetHandler = PacketHandler(PROTOCOL_VERSION)
 
     if not portHandler.openPort():
-        raise IOError("Failed to open port")
+        print("Failed to open port")
+        return
 
-    if not portHandler.setBaudRate(BAUDRATE):
-        raise IOError("Failed to set baudrate")
+    if not portHandler.setBaudRate(baudrate):
+        print("Failed to set baudrate")
+        portHandler.closePort()
+        return
 
-    # Disable torque to allow EEPROM write
-    packetHandler.write1ByteTxRx(portHandler, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_DISABLE)
-
-    # Ensure Joint Mode
-    packetHandler.write2ByteTxRx(portHandler, DXL_ID, ADDR_CW_ANGLE_LIMIT, 0)
-    packetHandler.write2ByteTxRx(portHandler, DXL_ID, ADDR_CCW_ANGLE_LIMIT, 4095)
+    # Set wheel mode (velocity mode)
+    packetHandler.write2ByteTxRx(portHandler, dxl_id, ADDR_CW_ANGLE_LIMIT, 0)
+    packetHandler.write2ByteTxRx(portHandler, dxl_id, ADDR_CCW_ANGLE_LIMIT, 0)
 
     # Enable torque
-    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(
-        portHandler, DXL_ID, ADDR_TORQUE_ENABLE, TORQUE_ENABLE)
-    if dxl_comm_result != COMM_SUCCESS:
-        raise RuntimeError(f"Torque enable failed: {packetHandler.getTxRxResult(dxl_comm_result)}")
+    packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_TORQUE_ENABLE, 1)
 
-    # Send goal position
-    dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(
-        portHandler, DXL_ID, ADDR_GOAL_POSITION, position)
-    if dxl_comm_result != COMM_SUCCESS:
-        raise RuntimeError(f"Failed to send goal position: {packetHandler.getTxRxResult(dxl_comm_result)}")
+    # Apply direction
+    if direction.upper() == "CW":
+        dxl_speed = speed + 1024
+    else:
+        dxl_speed = speed
 
-    print(f"✅ Moving to {degree}° ({position})")
-
-    # Wait until movement is complete
-    while True:
-        dxl_present_position, dxl_comm_result, dxl_error = packetHandler.read2ByteTxRx(
-            portHandler, DXL_ID, ADDR_PRESENT_POSITION)
-        if dxl_comm_result != COMM_SUCCESS:
-            print(f"[TxRxResult] {packetHandler.getTxRxResult(dxl_comm_result)}")
-            break
-
-        if abs(dxl_present_position - position) < 10:
-            break
-
-    print("✅ Movement complete.")
-    portHandler.closePort()
+    # Send speed
+    packetHandler.write2ByteTxRx(portHandler, dxl_id, ADDR_MOVING_SPEED, dxl_speed)
 
 
-#move_to_degree(0)   # Rotate to 90°
-#move_to_degree(360)  # Rotate to 270
+set_dynamixel_speed(
+    dxl_id=1,
+    port="/dev/ttyUSB1",
+    baudrate=57600,
+    speed=10,
+    direction="CW"
+)
+
+time.sleep(1)
+
+set_dynamixel_speed(
+    dxl_id=1,
+    port="/dev/ttyUSB1",
+    baudrate=57600,
+    speed=0,
+    direction="CW"
+)
