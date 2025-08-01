@@ -11,7 +11,7 @@ import dynamixellib
 
 
 from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl
-from arm_lib_can import set_velocity_loop, start_bus, start_bus
+from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake
 
 
 #try:
@@ -30,7 +30,7 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
-#start_bus()
+start_bus()
 start_devs()
 
 degree=0
@@ -54,7 +54,7 @@ async def handle_websocket(websocket, path=None):
                 data = json.loads(message)
                 rgbd= data["rgb"]
                 arm_com = data["arm_command"]
-                print(arm_com)
+                #print(arm_com)
                 motor_params = data["motorparams"]
                 if rgbd == 'red':
                     change_color(b'r')
@@ -64,36 +64,58 @@ async def handle_websocket(websocket, path=None):
                     change_color(b'b')
                 #print(data)
                 if arm_com == 'c':
-                    set_velocity_loop(12, 200, 200)
-                    set_velocity_loop(12, 200, 200)
-                    set_velocity_loop(12, 200, 200)
-                    set_velocity_loop(12, 200, 200)
+                    set_velocity_loop(12, 10, 200)
+                    set_velocity_loop(12, 10, 200)
                 if arm_com == 'v':
-                    set_velocity_loop(13, 200, 200)
-                    set_velocity_loop(13, 200, 200)
-                    set_velocity_loop(13, 200, 200)
-                    set_velocity_loop(13, 200, 200)
+                    set_velocity_loop(13, 10, 200)
+                    set_velocity_loop(13, 10, 200)
                 if arm_com == 'n':
-                    set_velocity_loop(16, 200, 200)
-                    set_velocity_loop(16, 200, 200)
-                    set_velocity_loop(16, 200, 200)
-                    set_velocity_loop(16, 200, 200)
+                    set_velocity_loop(16, 10, 200)
+                    set_velocity_loop(16, 10, 200)
                 if arm_com == 'b':
-                    set_velocity_loop(15, 200, 200)
-                    set_velocity_loop(15, 200, 200)
-                    set_velocity_loop(15, 200, 200)
-                    set_velocity_loop(15, 200, 200)
-                if arm_com == 'u':
-                    dynamixellib.move_to_degree(degree+10)
-                    degree=(degree+10)%360
-                if arm_com == 'j':
-                    dynamixellib.move_to_degree(degree-10)
-                    degree=(degree-10)%360
+                    set_velocity_loop(14, 10, 200)
+                    set_velocity_loop(14, 10, 200)
+                if not arm_com=='b'  and not arm_com=='B':
+                    set_current_brake(14,2.5)
+
+                if arm_com == 'o':
+                    scictl(b'o')
+                if arm_com == 'l':
+                    scictl(b'l')
 
                 if arm_com == 'i':
                     scictl(b'i')
                 if arm_com == 'k':
                     scictl(b'k')
+
+
+
+                if arm_com == 'C':
+                    set_velocity_loop(12, -10, 200)
+                    set_velocity_loop(12, -10, 200)
+                if arm_com == 'V':
+                    set_velocity_loop(13, -10, 200)
+                    set_velocity_loop(13, -10, 200)
+                if arm_com == 'N':
+                    set_velocity_loop(16, -10, 200)
+                    set_velocity_loop(16, -10, 200)
+                if arm_com == 'B':
+                    set_velocity_loop(14, -10, 200)
+                    set_velocity_loop(14, -10, 200)
+
+
+                if arm_com == 'u':
+                    dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,10,"CW")
+                    degree=(degree+10)
+                if arm_com == 'j':
+                    dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,10,"CCW")
+                    degree=(degree-10)
+                if arm_com == 'h':
+                    dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,0,"CW")
+                    degree=(degree-10)
+
+                if arm_com == 'cam':
+                    os.system("python3 /home/kaine/camlk/main.py")
 
                 if "linear" in data and "angular" in data:
                     linear, angular = data["linear"], data["angular"]
@@ -101,6 +123,17 @@ async def handle_websocket(websocket, path=None):
                     # if linear!=0 or angular!=0:
                     velocity_control_loco(angular, linear, motor_params)
                     await websocket.send(json.dumps({"status": "sent", "linear": linear, "angular": angular}))
+                # if "dyna" in data and data["dynaspeed"]!=[-1,-1]:
+                #     if data["dynaspeed"].index(max(data["dynaspeed"]))==0:
+                #         dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,(max(data["dynaspeed"])+1)*20,"CCW")
+                #         #print("CCW",(max(data["dynaspeed"])+1)*20 )
+                #     elif data["dynaspeed"].index(max(data["dynaspeed"]))==1:
+                #         dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,(max(data["dynaspeed"])+1)*20,"CW")
+                #         #print("CW",(max(data["dynaspeed"])+1)*20 )
+
+                elif data["dynaspeed"]==[-1,-1]:
+                    dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,0,"CW")
+                    #print("-1,-1")
                 elif "command" in data:
                     command = data["command"]
 
@@ -136,9 +169,6 @@ async def handle_websocket(websocket, path=None):
     finally:
         active_connections.remove(websocket)
         print(f"Connection from {client_address} closed, {len(active_connections)} active connections")
-        change_color(b'x')
-        time.sleep(5)
-        change_color(b'r')
 
 # Graceful shutdown
 async def shutdown():
