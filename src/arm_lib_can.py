@@ -12,13 +12,13 @@ import logging
 
 #logging.basicConfig(level=logging.DEBUG)
 
-
+id=14
 
 control_modes = {"SET_DUTY":0, "SET_CURRENT":1, "SET_CURRENT_BRAKE":2, "SET_RPM":3, "SET_POS":4, "SET_ORIGIN_HERE":5, "SET_POS_SPD":6}
-can_channel = os.getenv("MOTOR_CAN")
+can_channel = "can1"
 tx_timeout =  0.1 #second
 rx_timeout =  0.1 #second
-can_bitrate = 500000
+can_bitrate = 1000000
 rpm_constant = 200
 
 heading_offset = None
@@ -417,8 +417,8 @@ if __name__=="__main__":
     #         movement[i] = float(movement[i])        
     #     AresArm.move(movement)
     #     print(AresArm.pos)    
-    id=9
+    #id=13
     start_bus()
-    for _ in range(29):
-        set_velocity_loop(id, 200, 200)
+    for _ in range(20):
+        set_velocity_loop(id, 25, 200)
     stop_bus()
