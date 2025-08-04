@@ -45,6 +45,16 @@ const screens = [
       </div>
     ` 
   },
+  {
+    id: "ControllerScreen",
+    html: `
+    <div id="ControllerScreen">
+     <div onclick="PrintControllerId()" id="PlayerNumber"></div>
+     
+     <div id=ControllerScreenButtons></div>
+    </div>
+    `
+  }
 ]
 
 let screenSelectBoxString = ""
@@ -54,6 +64,57 @@ CreateScreenSelectBoxString()
 let windowId = 0;
 const windowSizeIncrement = 10;
 let currentWindows = []
+
+
+let controllerId = ""
+let buttonFunctionsString = ""
+const buttonFunctions = [
+  // Loco
+  {id: "LocoAngular", type: "Axis"},
+  {id: "LocoLinear", type: "Axis"},
+
+  // Science
+  {id: "ScienceDown", type: "Button"},
+  {id: "ScienceUp", type: "Button"},
+
+  // Arm
+  {id: "DOF1Left", type: "Button"},
+  {id: "DOF1Right", type: "Button"},
+  {id: "DOF1", type: "Axis"},
+
+  {id: "DOF2Down", type: "Button"},
+  {id: "DOF2Up", type: "Button"},
+  {id: "DOF2", type: "Axis"},
+
+  {id: "DOF3Down", type: "Button"},
+  {id: "DOF3Up", type: "Button"},
+
+  {id: "DOF4Down", type: "Button"},
+  {id: "DOF4Up", type: "Button"},
+
+  {id: "EndEffector", type: "Axis"},
+
+  {id: "GripperOpen", type: "Button"},
+  {id: "GripperClose", type: "Button"},
+]
+
+const controllerConfigs = [
+  {id: "PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", config: [
+    {button: 14, func: "ScienceDown"},
+    {button: 12, func: "ScienceUp"},
+    {button: 4, func: "GripperOpen"},
+    {button: 5, func: "GripperClose"},
+    {button: 0, func: "DOF3Down"},
+    {button: 2, func: "DOF3Up"},
+    {button: 3, func: "DOF4Down"},
+    {button: 1, func: "DOF4Up"},
+    {axis: 0, func: "LocoAngular"},
+    {axis: 1, func: "LocoLinear"},
+    {axis: 2, func: "DOF1"},
+    {axis: 5, func: "DOF2"},
+  ]},
+  
+]
 
 document.getElementById('ip-address').value = document.location.host.split(':')[0]
 document.addEventListener('DOMContentLoaded', function () {
@@ -489,16 +550,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 AddWindow()
 SelectScreen("screenDiv1", "MobileScreen")
+// SelectScreen("screenDiv1", "ControllerScreen")
 
-//#region Functions
+//#region FUNCTIONS
 
-// Windows and Screens
+// #region Windows and Screens
 function AddWindow(){
   windowId++  
   document.getElementById("WindowsDiv").innerHTML += `
     <div style="width: 100%" id="window${windowId}" class="WindowClass">
       <div class="WindowTopClass">
-        <select onchange="SelectScreen('screenDiv${windowId}', this.value)" name="" id="WindowCountSelectBox" class="SelectBox WindowSelectBox">
+        <select onchange="SelectScreen('screenDiv${windowId}', this.value)" name="" id="WindowCountSelectBox" class="SelectBoxClass WindowSelectBox">
           ${screenSelectBoxString}
         </select>
         <div class="WindowControlDiv">
@@ -560,7 +622,131 @@ function ChangeOrder(id, direction){
     window.style.order = i
   }
 }
+
 //#endregion
 
+//#region ControllerScreen
+CreateButtonFunctionsString()
 
-console.log(navigator.getGamepads())
+function CreateButtonFunctionsString(){
+  buttonFunctionsString += '<option value="none">none</option>\n'
+  for (let i = 0; i < buttonFunctions.length; i++) {
+    const func = buttonFunctions[i];
+    buttonFunctionsString += `
+    <option value="${func.id}">${func.id}</option>\n
+    `
+  }
+}
+
+function PrintControllerId(){
+  console.log(controllerId)
+}
+
+function GetControllerConfigFunction(type, id){
+  const config = FindProperty(controllerConfigs, "id", controllerId).config
+  const subConfig = FindProperty(config, type, id)
+  return subConfig != undefined ? subConfig.func : "none"
+}
+//#endregion
+
+//#region General Functions
+function FindProperty(array, property, value){
+  for (let i = 0; i < array.length; i++) {
+    const element = array[i];
+    if(element[property] == value) return element
+  }
+}
+//#endregion
+
+//#endregion
+
+// Gamepad
+setInterval(() => {
+  // console.log(navigator.getGamepads())
+  const gamepads = navigator.getGamepads()
+  const playerNumberElement = document.getElementById("PlayerNumber")
+  const ControllerScreenButtonsElement = document.getElementById("ControllerScreenButtons")
+  let currentGamepad = null
+  let controllerCount = 0
+  let controllerChanged = false
+
+  // player number
+  for (let i = 0; i < gamepads.length; i++) {
+    const gamepad = gamepads[i];
+    if(gamepad != null){
+      controllerCount++
+      playerNumberElement.textContent = "P" + (i + 1)
+      playerNumberElement.style.color = "var(--color-green)"
+      currentGamepad = gamepad
+      if(controllerId != gamepad.id){
+        controllerId = gamepad.id
+        playerNumberElement.title = controllerId
+        controllerChanged = true
+      }
+      else{
+        controllerChanged = false
+      }
+      
+    }
+  }
+  
+  if(controllerCount == 0){
+    playerNumberElement.textContent = "None"
+    playerNumberElement.style.color = "var(--color-red)"
+    playerNumberElement.title = "None"
+    ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>"
+    return
+  }
+  else if(controllerCount > 1){
+    playerNumberElement.textContent = "Multiple"
+    playerNumberElement.style.color = "var(--color-yellow)"
+  }
+
+  // buttons
+  if(controllerChanged) ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>"
+
+  for (let a = 0; a < currentGamepad.buttons.length; a++) {
+    const button = currentGamepad.buttons[a];
+    if(controllerChanged){
+      // create buttons
+      ControllerScreenButtonsElement.innerHTML += `
+        <div>
+        <button id="controllerButton${a}" class="ButtonClass">${a}</button>
+        <select id="controllerSelectBoxButton${a}" class='SelectBoxClass'>${buttonFunctionsString}</select>
+        </div>
+      `
+      setTimeout(() => {
+        document.getElementById("controllerSelectBoxButton" + a).value = GetControllerConfigFunction('button', a)   
+      }, 250);
+    }
+    
+
+    const controllerButton = document.getElementById("controllerButton" + a)
+    if(button.pressed) controllerButton.classList.add("ControlButtonActiveClass")
+    else controllerButton.classList.remove("ControlButtonActiveClass")
+  }
+    
+
+  // axes
+  if(controllerChanged){
+    ControllerScreenButtonsElement.innerHTML += "<span>Axes</span>"
+  }
+  
+  for (let a = 0; a < currentGamepad.axes.length; a++) {
+    const axis = currentGamepad.axes[a];
+    if(controllerChanged){
+      // create buttons
+      ControllerScreenButtonsElement.innerHTML += `
+        <div>
+        <button id="controllerAxis${a}" class="ButtonClass">${a}</button>
+        <select class='SelectBoxClass'>"${buttonFunctionsString}</select>
+        </div>
+      `
+    }
+    const controllerAxis = document.getElementById("controllerAxis" + a)
+    controllerAxis.textContent = a + ": " + axis.toFixed(4)
+  }
+  console.log(currentGamepad.axes[0])
+
+  // console.log(navigator.getGamepads())
+}, 50);
