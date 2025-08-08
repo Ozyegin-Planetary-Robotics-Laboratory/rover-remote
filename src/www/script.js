@@ -65,8 +65,8 @@ const screens = [
     html: `
     <div id="StatusScreen">
       <div id="RoverStatusDiv">
-        <div id="LocoStatusDiv">
-          <div style="margin-right: 2rem;">
+        <div class="RoverStatusSectionClass" id="LocoStatusDiv">
+          <div style="margin-right: 1rem;">
             <div style="justify-content: start;" class="LocoStatusDivClass">
               <span id="LocoStatusTemp1" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed1" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
@@ -82,7 +82,7 @@ const screens = [
           </div>
           
 
-          <div style="margin-left: 2rem;">
+          <div style="margin-left: 1rem;">
             <div style="justify-content: start;" class="LocoStatusDivClass">
               <span id="LocoStatusTemp3" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed3" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
@@ -94,10 +94,21 @@ const screens = [
           </div>
           
         </div>
-        <div id="ConnectionStatusDiv">
+        <div class="RoverStatusSectionClass" id="ConnectionStatusDiv">
           <span style="margin-bottom: 1rem;">Connection</span>
           <button onclick="connectToBridge()" style="background-color: var(--color-blue)" class="ButtonClass">Connect</button>
           <button onclick="disconnectFromBridge()" style="background-color: var(--color-red); margin-top: 1rem;" class="ButtonClass">Disconnect</button>
+        </div>
+        <div class="RoverStatusSectionClass" id="LedControlDiv">
+          <span>Colors</span>
+          <div>
+            <button style="background-color: var(--color-red);" class="LedButtonClass"></button>
+            <button style="background-color: var(--color-green);" class="LedButtonClass"></button>
+            <button style="background-color: var(--color-blue);" class="LedButtonClass"></button>
+            <button style="background-color: var(--color-yellow);" class="LedButtonClass"></button>
+            <button style="background-color: var(--color-pink);" class="LedButtonClass"></button>
+            <button style="background-color: var(--color-cyan);" class="LedButtonClass"></button>
+          </div>
         </div>
       </div>
     </div>
@@ -148,7 +159,7 @@ const colorConfigs = [
   },
   {
     type: "speed",
-    tresholds: [20, 50]
+    tresholds: [30, 70]
   },
 
 ]
@@ -615,12 +626,19 @@ function updateArm(dof2, dof3, dof4) {
 
 //#region StatusScreen
 function UpdateRoverStatus() {
-  const temps = [45, 46, 47, 48]
-  const speeds = [32, 33, 34, 35]
+  const temps = [45, 46, 62, 48]
+  const speeds = [30, 45, 25, 28]
 
   for (let i = 0; i < 4; i++) {
-    document.getElementById("LocoStatusTemp" + (i + 1)).textContent = temps[i]
-    document.getElementById("LocoStatusSpeed" + (i + 1)).textContent = speeds[i]
+    const temp = temps[i]
+    const locoStatusTemp = document.getElementById("LocoStatusTemp" + (i + 1))
+    locoStatusTemp.textContent = temp
+    locoStatusTemp.style.color = ColorCalculator("temperature", temp)
+
+    const speed = speeds[i]
+    const locoStatusSpeed = document.getElementById("LocoStatusSpeed" + (i + 1))
+    locoStatusSpeed.textContent = speed
+    locoStatusSpeed.style.color = ColorCalculator("speed", speed)
   }
 }
 //#endregion

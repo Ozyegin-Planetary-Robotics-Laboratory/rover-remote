@@ -6,6 +6,8 @@
   --color-red: #e4241d;
   --color-green: #24e41d;
   --color-yellow: #e4e11d;
+  --color-pink: #cd1de4;
+  --color-cyan: #1de4c9;
   --font-color: rgb(250, 250, 250);
 }
 
@@ -419,15 +421,24 @@ h1 {
 /* #endregion */
 
 /* #region Status Screen */
-#StatusScreen{
+.RoverStatusSectionClass{
+  margin-top: 1rem;
+  background-color: var(--color1);
+  border-radius: 0.4rem;
   padding: 1rem;
 }
-#LocoStatusDiv{
-  display: flex;
-  justify-content: center;
-  height: 11rem;
-  width: 36rem;
-  margin-top: 2rem;
+.LedButtonClass{
+  height: 2rem;
+  aspect-ratio: 1;
+  border-radius: 0.4rem;
+  margin: 1rem 1rem 0 0;
+  border: var(--font-color);
+  cursor: pointer;
+  transition-duration: 50ms;
+}
+.LedButtonClass:active{
+  transform: scale(0.9);
+  opacity: 0.5;
 }
 #ConnectionDiv{
   position: absolute;
@@ -435,6 +446,16 @@ h1 {
   display: flex;
   flex-direction: column;
   top: 8rem;
+}
+#StatusScreen{
+  padding: 1rem;
+}
+#LocoStatusDiv{
+  display: flex;
+  justify-content: center;
+  height: 12rem;
+  width: 24rem;
+  margin-top: 1rem;
 }
 #RoverStatusImg{
   height: 12rem;
@@ -483,6 +504,7 @@ h1 {
 }
 .LocoStatusSpeedSpanClass{
   margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 .LocoStatusSpeedSpanClass::after{
   content: " RPM";
