@@ -4,8 +4,6 @@
 cleanup() {
     echo "Stopping scripts..."
     sudo pkill -f driver.py
-    #pkill python #Remove later
-    #pkill python3
     sudo pkill -f httpserver.py
     exit 0
 }
@@ -20,7 +18,7 @@ trap cleanup SIGINT SIGTERM EXIT
 # Run the scripts in the foreground (so they stop when the terminal closes)
 ./src/driver.py &
 #python -m http.server --directory src/www/ 8080 &
-./src/httpserver.py &
+./src/httpserver.py
 
 # Wait to keep the script running until interrupted
 wait
