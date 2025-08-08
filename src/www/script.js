@@ -59,7 +59,31 @@ const screens = [
      <div id=ControllerScreenButtons></div>
     </div>
     `
-  }
+  },
+  {
+    id: "ManipulatorScreen",
+    html: `
+    <div id="ManipulatorScreen">
+      <div id="ManipulatorContainer">
+        <div style="margin-top: 400px" id="ManipulatorDOF1" class="ManipulatorDOFClass">
+          <div class="joint-circle"></div>
+          <div id="ManipulatorLink1" class="ManipulatorLinkClass" style="width:150px;">
+            <div id="ManipulatorDOF2" class="ManipulatorDOFClass" style="position:absolute; left:150px; top:0;">
+              <div class="joint-circle"></div>
+              <div id="ManipulatorLink2" class="ManipulatorLinkClass" style="width:100px;">
+                <div id="ManipulatorDOF3" class="ManipulatorDOFClass" style="position:absolute; left:100px; top:0;">
+                  <div class="joint-circle"></div>
+                  <div id="ManipulatorLink3" class="ManipulatorLinkClass" style="width:50px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+     </div>
+
+    </div>
+    `
+  },
 ]
 
 let screenSelectBoxString = ""
@@ -384,6 +408,7 @@ connectToBridge()
 AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
+SelectScreen("screenDiv1", "ManipulatorScreen")
 
 //#region FUNCTIONS
 
@@ -511,6 +536,16 @@ function GetControllerConfigFunction(type, id){
   const subConfig = FindProperty(config, type, id)
   return subConfig != undefined ? subConfig.func : "none"
 }
+//#endregion
+
+//#region ManipulatorScreen
+updateArm(45,-45,-45)
+function updateArm(dof2, dof3, dof4) {
+  document.getElementById('ManipulatorDOF1').style.transform = `rotate(${dof2}deg)`;
+  document.getElementById('ManipulatorDOF2').style.transform = `rotate(${dof3}deg)`;
+  document.getElementById('ManipulatorDOF3').style.transform = `rotate(${dof4}deg)`;
+}
+
 //#endregion
 
 //#region Connection
@@ -703,6 +738,8 @@ function startSendingData() {
 }
 //#endregion
 
+
+
   //#region General Functions
 function FindProperty(array, property, value){
   for (let i = 0; i < array.length; i++) {
@@ -849,3 +886,4 @@ setInterval(() => {
   
   
 }, 100);
+

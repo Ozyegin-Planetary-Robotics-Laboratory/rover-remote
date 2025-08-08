@@ -369,6 +369,51 @@ h1 {
 }
 /* #endregion */
 
+/* #region Manipulator Screen */
+#ManipulatorScreen{
+  position: relative;
+  width: calc(100% - 2rem);
+}
+#ManipulatorContainer{
+  display: flex;
+  background-color: var(--color1);
+  border-radius: 0.4rem;
+  margin: 1rem;
+  justify-content: center;
+  align-content: center;
+
+  width: calc(100% - 4rem);
+  height: 800px;
+  padding: 2rem;
+}
+.ManipulatorDOFClass {
+  position: relative;
+  /* background-color: var(--color-blue); */
+  width: 0;
+  height: 0;
+  transform-origin: 0% 50%;
+}
+.joint-circle {
+  position: absolute;
+  width: 30px;
+  aspect-ratio: 1;
+  background: var(--color-blue);
+  border-radius: 50%;
+  transform: translate(-10px, -8px);
+  z-index: 1;
+  border: 2px solid var(--color3);
+}
+.ManipulatorLinkClass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  background-color: var(--color3);
+  transform-origin: 0% 50%;
+}
+
+/* #endregion */
+
 /* #region Scrollbar */
 /* width */
 ::-webkit-scrollbar {
