@@ -48,7 +48,7 @@ const screens = [
       <div>
       <span>sea</span>
       </div>
-    ` 
+    `
   },
   {
     id: "ControllerScreen",
@@ -57,6 +57,49 @@ const screens = [
      <div onclick="PrintControllerId()" id="PlayerNumber"></div>
      
      <div id=ControllerScreenButtons></div>
+    </div>
+    `
+  },
+  {
+    id: "StatusScreen",
+    html: `
+    <div id="StatusScreen">
+      <div id="RoverStatusDiv">
+        <div id="LocoStatusDiv">
+          <div style="margin-right: 2rem;">
+            <div style="justify-content: start;" class="LocoStatusDivClass">
+              <span id="LocoStatusTemp1" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed1" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+            </div>
+            <div style="justify-content: end;" class="LocoStatusDivClass">
+              <span id="LocoStatusTemp2" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed2" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+            </div>
+          </div>
+          
+          <div id="RoverStatusImg">
+            <img id="EmergencyButton" style="width: 5rem;" src="icons/EmergencyButton.png"></img>
+          </div>
+          
+
+          <div style="margin-left: 2rem;">
+            <div style="justify-content: start;" class="LocoStatusDivClass">
+              <span id="LocoStatusTemp3" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed3" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+            </div>
+            <div style="justify-content: end;" class="LocoStatusDivClass">
+              <span id="LocoStatusTemp4" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed4" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+            </div>
+          </div>
+          
+        </div>
+        <div id="ConnectionStatusDiv">
+          <span style="margin-bottom: 1rem;">Connection</span>
+          <button onclick="connectToBridge()" style="background-color: var(--color-blue)" class="ButtonClass">Connect</button>
+          <button onclick="disconnectFromBridge()" style="background-color: var(--color-red); margin-top: 1rem;" class="ButtonClass">Disconnect</button>
+        </div>
+      </div>
     </div>
     `
   },
@@ -94,6 +137,22 @@ let windowId = 0;
 const windowSizeIncrement = 10;
 let currentWindows = []
 
+const colorConfigs = [
+  {
+    type: "latency",
+    tresholds: [250, 1000]
+  },
+  {
+    type: "temperature",
+    tresholds: [35, 60]
+  },
+  {
+    type: "speed",
+    tresholds: [20, 50]
+  },
+
+]
+
 // Controller
 let controllerScreenOldState = false;
 const controllerDeadzone = 0.1
@@ -102,83 +161,89 @@ let controllerId = ""
 let buttonFunctionsString = ""
 const buttonFunctions = [
   // Loco
-  {id: "LocoAngular", type: "Axis"},
-  {id: "LocoLinear", type: "Axis"},
+  { id: "LocoAngular", type: "Axis" },
+  { id: "LocoLinear", type: "Axis" },
 
   // Science
-  {id: "ScienceDown", type: "Button"},
-  {id: "ScienceUp", type: "Button"},
+  { id: "ScienceDown", type: "Button" },
+  { id: "ScienceUp", type: "Button" },
 
   // Arm
-  {id: "DOF1Left", type: "Button"},
-  {id: "DOF1Right", type: "Button"},
-  {id: "DOF1", type: "Axis"},
+  { id: "DOF1Left", type: "Button" },
+  { id: "DOF1Right", type: "Button" },
+  { id: "DOF1", type: "Axis" },
 
-  {id: "DOF2Down", type: "Button"},
-  {id: "DOF2Up", type: "Button"},
-  {id: "DOF2", type: "Axis"},
+  { id: "DOF2Down", type: "Button" },
+  { id: "DOF2Up", type: "Button" },
+  { id: "DOF2", type: "Axis" },
 
-  {id: "DOF3Down", type: "Button"},
-  {id: "DOF3Up", type: "Button"},
+  { id: "DOF3Down", type: "Button" },
+  { id: "DOF3Up", type: "Button" },
 
-  {id: "DOF4Down", type: "Button"},
-  {id: "DOF4Up", type: "Button"},
+  { id: "DOF4Down", type: "Button" },
+  { id: "DOF4Up", type: "Button" },
 
-  {id: "EndEffectorCCW", type: "Button"},
-  {id: "EndEffectorCW", type: "Button"},
+  { id: "EndEffectorCCW", type: "Button" },
+  { id: "EndEffectorCW", type: "Button" },
 
-  {id: "GripperOpen", type: "Button"},
-  {id: "GripperClose", type: "Button"},
+  { id: "GripperOpen", type: "Button" },
+  { id: "GripperClose", type: "Button" },
 ]
 
 const controllerConfigs = [
-  {id: "PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", config: [
-    {button: 14, func: "ScienceDown"},
-    {button: 12, func: "ScienceUp"},
-    {button: 4, func: "GripperOpen"},
-    {button: 5, func: "GripperClose"},
-    {button: 0, func: "DOF3Down"},
-    {button: 2, func: "DOF3Up"},
-    {button: 3, func: "DOF4Down"},
-    {button: 1, func: "DOF4Up"},
-    {axis: 0, func: "LocoAngular"},
-    {axis: 1, func: "LocoLinear"},
-    {axis: 2, func: "DOF1"},
-    {axis: 5, func: "DOF2"},
-  ]},
-  {id: "Xbox 360 Controller (XInput STANDARD GAMEPAD)", config: [
-    {button: 13, func: "ScienceDown"},
-    {button: 12, func: "ScienceUp"},
-    {button: 4, func: "GripperOpen"},
-    {button: 5, func: "GripperClose"},
-    {button: 3, func: "DOF3Down"},
-    {button: 0, func: "DOF3Up"},
-    {button: 2, func: "DOF4Down"},
-    {button: 1, func: "DOF4Up"},
-    {button: 6, func: "EndEffectorCCW"},
-    {button: 7, func: "EndEffectorCW"},
-    {axis: 0, func: "LocoAngular"},
-    {axis: 1, func: "LocoLinear"},
-    {axis: 2, func: "DOF1"},
-    {axis: 3, func: "DOF2"},
-  ]},
-  {id: "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", config: [
-    {button: 13, func: "ScienceDown"},
-    {button: 12, func: "ScienceUp"},
-    {button: 4, func: "GripperOpen"},
-    {button: 5, func: "GripperClose"},
-    {button: 3, func: "DOF3Down"},
-    {button: 0, func: "DOF3Up"},
-    {button: 2, func: "DOF4Down"},
-    {button: 1, func: "DOF4Up"},
-    {button: 6, func: "EndEffectorCCW"},
-    {button: 7, func: "EndEffectorCW"},
-    {axis: 0, func: "LocoAngular"},
-    {axis: 1, func: "LocoLinear"},
-    {axis: 2, func: "DOF1"},
-    {axis: 3, func: "DOF2"},
-  ]},
-  
+  {
+    id: "PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", config: [
+      { button: 14, func: "ScienceDown" },
+      { button: 12, func: "ScienceUp" },
+      { button: 4, func: "GripperOpen" },
+      { button: 5, func: "GripperClose" },
+      { button: 0, func: "DOF3Down" },
+      { button: 2, func: "DOF3Up" },
+      { button: 3, func: "DOF4Down" },
+      { button: 1, func: "DOF4Up" },
+      { axis: 0, func: "LocoAngular" },
+      { axis: 1, func: "LocoLinear" },
+      { axis: 2, func: "DOF1" },
+      { axis: 5, func: "DOF2" },
+    ]
+  },
+  {
+    id: "Xbox 360 Controller (XInput STANDARD GAMEPAD)", config: [
+      { button: 13, func: "ScienceDown" },
+      { button: 12, func: "ScienceUp" },
+      { button: 4, func: "GripperOpen" },
+      { button: 5, func: "GripperClose" },
+      { button: 3, func: "DOF3Down" },
+      { button: 0, func: "DOF3Up" },
+      { button: 2, func: "DOF4Down" },
+      { button: 1, func: "DOF4Up" },
+      { button: 6, func: "EndEffectorCCW" },
+      { button: 7, func: "EndEffectorCW" },
+      { axis: 0, func: "LocoAngular" },
+      { axis: 1, func: "LocoLinear" },
+      { axis: 2, func: "DOF1" },
+      { axis: 3, func: "DOF2" },
+    ]
+  },
+  {
+    id: "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", config: [
+      { button: 13, func: "ScienceDown" },
+      { button: 12, func: "ScienceUp" },
+      { button: 4, func: "GripperOpen" },
+      { button: 5, func: "GripperClose" },
+      { button: 3, func: "DOF3Down" },
+      { button: 0, func: "DOF3Up" },
+      { button: 2, func: "DOF4Down" },
+      { button: 1, func: "DOF4Up" },
+      { button: 6, func: "EndEffectorCCW" },
+      { button: 7, func: "EndEffectorCW" },
+      { axis: 0, func: "LocoAngular" },
+      { axis: 1, func: "LocoLinear" },
+      { axis: 2, func: "DOF1" },
+      { axis: 3, func: "DOF2" },
+    ]
+  },
+
 ]
 
 // Connection
@@ -186,12 +251,11 @@ const connectionStatus = document.getElementById('ConnectionStatus');
 const ipAdress = document.location.host.split(':')[0]
 const port = 8765
 let isConnected = false
-
-connectToBridge()
+const latencySpan = document.getElementById("LatencySpan")
 
 // document.getElementById('ip-address').value = document.location.host.split(':')[0]
 // document.addEventListener('DOMContentLoaded', function () {
-  
+
 //   const container = document.getElementById('joystick-container');
 //   const colorpicker = document.getElementById('html5colorpicker');
 //   const armcom = document.getElementById('html5armcom');
@@ -409,12 +473,13 @@ AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
+SelectScreen("screenDiv1", "StatusScreen")
 
 //#region FUNCTIONS
 
 // #region Windows and Screens
-function AddWindow(){
-  windowId++  
+function AddWindow() {
+  windowId++
   document.getElementById("WindowsDiv").innerHTML += `
     <div style="width: 100%" id="window${windowId}" class="WindowClass">
       <div class="WindowTopClass">
@@ -432,33 +497,33 @@ function AddWindow(){
       <div id="screenDiv${windowId}"></div>
     </div>
   `
-  currentWindows.push({windowId: 'window' + windowId, screenId: "Blank"})
+  currentWindows.push({ windowId: 'window' + windowId, screenId: "Blank" })
   SelectScreen('screenDiv' + windowId, "Blank")
 }
 
-function GetScreenHTML(id){
+function GetScreenHTML(id) {
   for (let i = 0; i < screens.length; i++) {
     const screen = screens[i];
-    if(screen.id == id) return screen.html
+    if (screen.id == id) return screen.html
   }
 }
 
-function CreateScreenSelectBoxString(){
+function CreateScreenSelectBoxString() {
   for (let i = 0; i < screens.length; i++) {
     const screen = screens[i];
     screenSelectBoxString += `<option value="${screen.id}">${screen.id}</option>\n`
   }
 }
 
-function SelectScreen(screenDivId, screenId){
+function SelectScreen(screenDivId, screenId) {
   document.getElementById(screenDivId).innerHTML = GetScreenHTML(screenId)
   const windowId = "window" + screenDivId.slice("screenDiv".length)
-  
-  FindProperty(currentWindows, "windowId", windowId).screenId = screenId  
+
+  FindProperty(currentWindows, "windowId", windowId).screenId = screenId
   UpdateScreenSelectBoxOptions()
 }
 
-function UpdateScreenSelectBoxOptions(){
+function UpdateScreenSelectBoxOptions() {
   for (let a = 0; a < currentWindows.length; a++) {
     const window = currentWindows[a];
     const selectboxId = "WindowSelectBox" + window.windowId.slice("window".length)
@@ -467,41 +532,41 @@ function UpdateScreenSelectBoxOptions(){
     for (let i = 0; i < children.length; i++) {
       const option = children[i];
 
-      if(option.value != "Blank" && window.screenId != option.value && FindProperty(currentWindows, "screenId", option.value)){
+      if (option.value != "Blank" && window.screenId != option.value && FindProperty(currentWindows, "screenId", option.value)) {
         option.disabled = true
       }
       // After some changes the value of the selectbox started to change when a new window is added.
       // I have no idea why. The else if condition below is for temporary fix.
-      else if(window.screenId == option.value){
+      else if (window.screenId == option.value) {
         option.selected = true
       }
-      else{
+      else {
         option.disabled = false
       }
-    } 
+    }
   }
 }
 
-function ChangeWindowSize(id, size){
-  const targetWindow =  document.getElementById(id)
+function ChangeWindowSize(id, size) {
+  const targetWindow = document.getElementById(id)
   console.log(parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size)
   targetWindow.style.width = (parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size) + "%";
 }
 
-function CloseWindow(id){
+function CloseWindow(id) {
   document.getElementById(id).remove();
   const index = currentWindows.indexOf(id)
   currentWindows.splice(index, 1)
   UpdateScreenSelectBoxOptions()
 }
 
-function ChangeOrder(id, direction){
-  if(currentWindows.length <= 1) return
+function ChangeOrder(id, direction) {
+  if (currentWindows.length <= 1) return
   const window = FindProperty(currentWindows, "windowId", id)
   const index = currentWindows.indexOf(window)
 
-  if(index == 0 && direction < 0) return
-  else if(index == currentWindows.length - 1 & direction > 1) return
+  if (index == 0 && direction < 0) return
+  else if (index == currentWindows.length - 1 & direction > 1) return
 
   currentWindows.splice(index, 1)
   currentWindows.splice(index + direction, 0, window)
@@ -517,7 +582,7 @@ function ChangeOrder(id, direction){
 //#region ControllerScreen
 CreateButtonFunctionsString()
 
-function CreateButtonFunctionsString(){
+function CreateButtonFunctionsString() {
   buttonFunctionsString += '<option value="none">none</option>\n'
   for (let i = 0; i < buttonFunctions.length; i++) {
     const func = buttonFunctions[i];
@@ -527,11 +592,11 @@ function CreateButtonFunctionsString(){
   }
 }
 
-function PrintControllerId(){
+function PrintControllerId() {
   console.log(controllerId)
 }
 
-function GetControllerConfigFunction(type, id){
+function GetControllerConfigFunction(type, id) {
   const config = FindProperty(controllerConfigs, "id", controllerId).config
   const subConfig = FindProperty(config, type, id)
   return subConfig != undefined ? subConfig.func : "none"
@@ -548,204 +613,159 @@ function updateArm(dof2, dof3, dof4) {
 
 //#endregion
 
-//#region Connection
+//#region StatusScreen
+function UpdateRoverStatus() {
+  const temps = [45, 46, 47, 48]
+  const speeds = [32, 33, 34, 35]
 
-function connectToBridge() {    
-    reconnectAttempts = 0;
-
-    try {
-      // Create WebSocket connection
-      connectionStatus.textContent = `Connecting to bridge at ${ipAdress}:${port}...`;
-
-      // Use WebSocket protocol (ws:// or wss:// for secure)
-      socket = new WebSocket(`ws://${ipAdress}:${port}`);
-
-      // Connection opened
-      socket.addEventListener('open', function (event) {
-        isConnected = true;
-        connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
-        connectionStatus.classList.add('connected');
-        connectBtn.textContent = 'DISCONNECT';
-        connectBtn.classList.add('connected');
-
-        // Start sending joystick data
-        startSendingData();
-      });
-
-      // Listen for messages from the server
-      socket.addEventListener('message', function (event) {
-        try {
-          const response = JSON.parse(event.data);
-          console.log('Message from bridge:', response);
-
-          // Handle different response types
-          if (response.status === 'connected') {
-            console.log('Connection confirmed by bridge');
-          } else if (response.status === 'sent') {
-            // Data was successfully sent to the rover
-            connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
-          } else if (response.status === 'emergency_stop_sent') {
-            connectionStatus.textContent = 'Emergency stop sent to rover';
-          } else if (response.status === 'resume_control_acknowledged') {
-            connectionStatus.textContent = 'Control resumed';
-          } else if (response.status === 'error') {
-            console.error('Error from bridge:', response.message);
-            connectionStatus.textContent = `Error: ${response.message}`;
-          }
-        } catch (error) {
-          console.error('Error parsing bridge response:', error);
-        }
-      });
-
-      // Connection closed
-      // socket.addEventListener('close', function (event) {
-      //   if (isConnected) {
-      //     isConnected = false;
-      //     connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
-      //     connectionStatus.classList.remove('connected');
-      //     // connectBtn.textContent = 'CONNECT';
-      //     // connectBtn.classList.remove('connected');
-
-      //     // if (sendInterval) {
-      //     //   clearInterval(sendInterval);
-      //     //   sendInterval = null;
-      //     // }
-
-      //     // if (pingInterval) {
-      //     //   clearInterval(pingInterval);
-      //     //   pingInterval = null;
-      //     // }
-
-      //     // Try to reconnect if not manually disconnected
-      //     // if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      //     //   reconnectAttempts++;
-      //     //   connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
-      //     //   setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
-      //     // }
-      //   }
-      // });
-
-      // Connection error
-      socket.addEventListener('error', function (error) {
-        connectionStatus.textContent = `Connection error`;
-        console.error('WebSocket error:', error);
-      });
-
-    } catch (error) {
-      connectionStatus.textContent = `Connection failed: ${error.message}`;
-      console.error('Connection error:', error);
-    }
-}
-function disconnectFromBridge() {
-    // if (sendInterval) {
-    //   clearInterval(sendInterval);
-    //   sendInterval = null;
-    // }
-
-    // if (pingInterval) {
-    //   clearInterval(pingInterval);
-    //   pingInterval = null;
-    // }
-
-    if (socket) {
-      // Send a clean disconnect message if possible
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          command: 'disconnect',
-          message: 'User initiated disconnect'
-        }));
-      }
-
-      // Close the socket
-      socket.close(1000, 'User disconnected');
-      socket = null;
-    }
-
-    isConnected = false;
-    connectionStatus.textContent = 'Disconnected';
-    connectionStatus.classList.remove('connected');
-    connectBtn.textContent = 'CONNECT';
-    connectBtn.classList.remove('connected');
-    reconnectAttempts = 0;
-}
-function startSendingData() {
-    if (sendInterval) {
-      clearInterval(sendInterval);
-    }
-
-    sendInterval = setInterval(() => {
-      if (isConnected && !isEmergency && socket && socket.readyState === WebSocket.OPEN) {
-        //game_pad=0;
-        // Apply deadzone to joystick values
-
-        let armco = armcom.value;
-        if (kolbox["checked"] == true) {
-          console.log(navigator.getGamepads())
-          currentX = navigator.getGamepads()[0].axes[0]
-          currentY = navigator.getGamepads()[0].axes[1]
-          //scienceUp = navigator.getGamepads()[0].buttons[12].value
-          //if (scienceUp){armco = 'i'}
-          //scienceDown = navigator.getGamepads()[0].buttons[13].value
-          //if (scienceDown){armco = 'k'}
-          //scienceDrill = navigator.getGamepads()[0].buttons[14].value
-          //if (scienceDrill){armco = 'o'}
-
-          armClockwise = navigator.getGamepads()[0].buttons[5].value
-
-          arm1 = navigator.getGamepads()[0].buttons[2].value
-          if (arm1) { armco = 'c' }
-          arm2 = navigator.getGamepads()[0].buttons[3].value
-          if (arm2) { armco = 'v' }
-          arm3 = navigator.getGamepads()[0].buttons[1].value
-          if (arm3) { armco = 'b' }
-          arm4 = navigator.getGamepads()[0].buttons[0].value
-          if (arm4) { armco = 'n' }
-
-
-
-          if (armClockwise) { armco = 'c' }
-          gripperClockwise = navigator.getGamepads()[0].buttons[6].value
-          if (gripperClockwise) { armco = 'j' }
-          gripperCClockwise = navigator.getGamepads()[0].buttons[4].value
-          if (gripperCClockwise) { armco = 'u' }
-        }
-        const linearVelocity = -1 * applyDeadzone(currentY, DEADZONE_THRESHOLD);
-        const angularVelocity = -1 * applyDeadzone(currentX, DEADZONE_THRESHOLD) / 2;
-        // Create data object to send
-        const data = {
-          linear: linearVelocity,
-          angular: angularVelocity,
-          arm_command: armco,
-          rgb: colorpicker.value,
-          motorparams: motpar.value,
-          //dynaspeed: [navigator.getGamepads()[0].axes[2],navigator.getGamepads()[0].axes[5]],
-          timestamp: Date.now()
-        };
-        colorpicker.value = ""
-
-
-        // Send data as JSON
-        socket.send(JSON.stringify(data));
-        armcom.value = ""
-      } else if (isEmergency && socket && socket.readyState === WebSocket.OPEN) {
-        // Send emergency stop command
-        socket.send(JSON.stringify({
-          command: 'emergency_stop',
-          timestamp: Date.now()
-        }));
-      }
-    }, 100); // Send data every 100ms (10Hz)
+  for (let i = 0; i < 4; i++) {
+    document.getElementById("LocoStatusTemp" + (i + 1)).textContent = temps[i]
+    document.getElementById("LocoStatusSpeed" + (i + 1)).textContent = speeds[i]
+  }
 }
 //#endregion
 
+//#region Connection
 
+function connectToBridge() {
+  reconnectAttempts = 0;
 
-  //#region General Functions
-function FindProperty(array, property, value){
+  try {
+    // Create WebSocket connection
+    connectionStatus.textContent = `Connecting to bridge at ${ipAdress}:${port}...`;
+
+    // Use WebSocket protocol (ws:// or wss:// for secure)
+    socket = new WebSocket(`ws://${ipAdress}:${port}`);
+
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+      isConnected = true;
+      connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
+      connectionStatus.classList.add('connected');
+      connectBtn.textContent = 'DISCONNECT';
+      connectBtn.classList.add('connected');
+
+      // Start sending joystick data
+      startSendingData();
+    });
+
+    // Listen for messages from the server
+    socket.addEventListener('message', function (event) {
+      try {
+        const response = JSON.parse(event.data);
+        console.log('Message from bridge:', response);
+        const currentTime = new Date()
+        const latency = currentTime - response.timestamp
+        latencySpan.textContent = latency
+        latencySpan.style.color = ColorCalculator("latency", latency)
+
+        // Handle different response types
+        if (response.status === 'connected') {
+          console.log('Connection confirmed by bridge');
+        } else if (response.status === 'sent') {
+          // Data was successfully sent to the rover
+          connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
+        } else if (response.status === 'emergency_stop_sent') {
+          connectionStatus.textContent = 'Emergency stop sent to rover';
+        } else if (response.status === 'resume_control_acknowledged') {
+          connectionStatus.textContent = 'Control resumed';
+        } else if (response.status === 'error') {
+          console.error('Error from bridge:', response.message);
+          connectionStatus.textContent = `Error: ${response.message}`;
+        }
+      } catch (error) {
+        console.error('Error parsing bridge response:', error);
+      }
+    });
+
+    // Connection closed
+    // socket.addEventListener('close', function (event) {
+    //   if (isConnected) {
+    //     isConnected = false;
+    //     connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
+    //     connectionStatus.classList.remove('connected');
+    //     // connectBtn.textContent = 'CONNECT';
+    //     // connectBtn.classList.remove('connected');
+
+    //     // if (sendInterval) {
+    //     //   clearInterval(sendInterval);
+    //     //   sendInterval = null;
+    //     // }
+
+    //     // if (pingInterval) {
+    //     //   clearInterval(pingInterval);
+    //     //   pingInterval = null;
+    //     // }
+
+    //     // Try to reconnect if not manually disconnected
+    //     // if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    //     //   reconnectAttempts++;
+    //     //   connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
+    //     //   setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
+    //     // }
+    //   }
+    // });
+
+    // Connection error
+    socket.addEventListener('error', function (error) {
+      connectionStatus.textContent = `Connection error`;
+      console.error('WebSocket error:', error);
+    });
+
+  } catch (error) {
+    connectionStatus.textContent = `Connection failed: ${error.message}`;
+    console.error('Connection error:', error);
+  }
+}
+
+function disconnectFromBridge() {
+  // if (sendInterval) {
+  //   clearInterval(sendInterval);
+  //   sendInterval = null;
+  // }
+
+  // if (pingInterval) {
+  //   clearInterval(pingInterval);
+  //   pingInterval = null;
+  // }
+
+  if (socket) {
+    // Send a clean disconnect message if possible
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        command: 'disconnect',
+        message: 'User initiated disconnect'
+      }));
+    }
+
+    // Close the socket
+    socket.close(1000, 'User disconnected');
+    socket = null;
+  }
+
+  isConnected = false;
+  connectionStatus.textContent = 'Disconnected';
+  connectionStatus.classList.remove('connected');
+  connectBtn.textContent = 'CONNECT';
+  connectBtn.classList.remove('connected');
+  reconnectAttempts = 0;
+}
+//#endregion
+
+//#region General Functions
+function FindProperty(array, property, value) {
   for (let i = 0; i < array.length; i++) {
     const element = array[i];
-    if(element[property] == value) return element
+    if (element[property] == value) return element
   }
+}
+
+function ColorCalculator(type, value) {
+  const tresholds = FindProperty(colorConfigs, "type", type).tresholds
+
+  if(tresholds[0] >= value) return "var(--color-green)"
+  else if(tresholds[1] >= value && value > tresholds[0]) return "var(--color-yellow)"
+  else if(value > tresholds[1]) return "var(--color-red)"
 }
 //#endregion
 
@@ -762,54 +782,56 @@ setInterval(() => {
   let controllerCount = 0
   let controllerChanged = false
   let controllerScreenOn = FindProperty(currentWindows, "screenId", "ControllerScreen") != undefined
+  let statusScreenOn = FindProperty(currentWindows, "screenId", "StatusScreen") != undefined
 
   // player number
   for (let i = 0; i < gamepads.length; i++) {
     const gamepad = gamepads[i];
-    if(gamepad != null){
+    if (gamepad != null) {
       controllerCount++
 
-      if(controllerScreenOn){
+      if (controllerScreenOn) {
         playerNumberElement.textContent = "P" + (i + 1)
         playerNumberElement.style.color = "var(--color-green)"
       }
-      
+
       currentGamepad = gamepad
-      if(controllerId != gamepad.id){
+      if (controllerId != gamepad.id) {
         controllerId = gamepad.id
         controllerChanged = true
       }
-      else{
+      else {
         controllerChanged = false
       }
-      
+
     }
   }
 
-  if(!controllerScreenOldState && controllerScreenOn){
-    controllerChanged = true
-  }
+  if (!controllerScreenOldState && controllerScreenOn) controllerChanged = true
 
-  if(controllerScreenOn){
+  if (controllerScreenOn) {
+
     controllerScreenOldState = true
-    if(controllerCount == 0){
+    if (controllerCount == 0) {
       playerNumberElement.textContent = "None"
       playerNumberElement.style.color = "var(--color-red)"
       playerNumberElement.title = "None"
       ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>"
       return
     }
-    else if(controllerCount > 1){
+    else if (controllerCount > 1) {
       playerNumberElement.textContent = "Multiple"
       playerNumberElement.style.color = "var(--color-yellow)"
     }
 
     // buttons
-    if(controllerChanged) ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>"
+    if (controllerChanged) {
+      ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>" 
+    }
 
     for (let a = 0; a < currentGamepad.buttons.length; a++) {
       const button = currentGamepad.buttons[a];
-      if(controllerChanged){
+      if (controllerChanged) {
         // create buttons
         ControllerScreenButtonsElement.innerHTML += `
           <div>
@@ -818,26 +840,25 @@ setInterval(() => {
           </div>
         `
         setTimeout(() => {
-          document.getElementById("controllerSelectBoxButton" + a).value = GetControllerConfigFunction('button', a)   
+          document.getElementById("controllerSelectBoxButton" + a).value = GetControllerConfigFunction('button', a)
         }, 250);
       }
-      
+
 
       const controllerButton = document.getElementById("controllerButton" + a)
-      if(button.pressed) controllerButton.classList.add("ControlButtonActiveClass")
+      if (button.pressed) controllerButton.classList.add("ControlButtonActiveClass")
       else controllerButton.classList.remove("ControlButtonActiveClass")
       controllerButton.textContent = a + ": " + button.value.toFixed(4)
     }
-      
 
     // axes
-    if(controllerChanged){
+    if (controllerChanged) {
       ControllerScreenButtonsElement.innerHTML += "<span>Axes</span>"
     }
-    
+
     for (let a = 0; a < currentGamepad.axes.length; a++) {
       const axis = currentGamepad.axes[a];
-      if(controllerChanged){
+      if (controllerChanged) {
         // create buttons
         ControllerScreenButtonsElement.innerHTML += `
           <div>
@@ -846,49 +867,58 @@ setInterval(() => {
           </div>
         `
         setTimeout(() => {
-          document.getElementById("controllerSelectBoxAxis" + a).value = GetControllerConfigFunction('axis', a)   
+          document.getElementById("controllerSelectBoxAxis" + a).value = GetControllerConfigFunction('axis', a)
         }, 250);
       }
       const controllerAxis = document.getElementById("controllerAxis" + a)
       controllerAxis.textContent = a + ": " + axis.toFixed(4)
     }
   }
-  else{
+  else {
     controllerScreenOldState = false
   }
-  
-  if(currentGamepad == null) return  
 
   let currentCommandStrings = []
-  
-  // Button Func
-  for (let i = 0; i < currentGamepad.buttons.length; i++) {
-    const button = currentGamepad.buttons[i];
-    if(!button.pressed) continue
-    
-    const commandString = GetControllerConfigFunction("button", i) + "#" + button.value.toFixed(4)
-    currentCommandStrings.push(commandString)
+
+  if (currentGamepad != null) {
+    // Button Func
+    for (let i = 0; i < currentGamepad.buttons.length; i++) {
+      const button = currentGamepad.buttons[i];
+      if (!button.pressed) continue
+
+      const commandString = GetControllerConfigFunction("button", i) + "#" + button.value.toFixed(4)
+      currentCommandStrings.push(commandString)
+    }
+
+    // Axis Func
+    for (let i = 0; i < currentGamepad.axes.length; i++) {
+      const axis = currentGamepad.axes[i];
+      if (Math.abs(axis) < controllerDeadzone) continue
+
+      const commandString = GetControllerConfigFunction("axis", i) + "#" + axis.toFixed(4)
+
+      currentCommandStrings.push(commandString)
+    }
+  }
+  else {
+    // what to do if no controller
   }
 
-  // Axis Func
-  for (let i = 0; i < currentGamepad.axes.length; i++) {
-    const axis = currentGamepad.axes[i];
-    if(Math.abs(axis) < controllerDeadzone) continue
-    
-    const commandString = GetControllerConfigFunction("axis", i) + "#" + axis.toFixed(4)
-    
-    currentCommandStrings.push(commandString)
+  // console.log(currentCommandStrings);
+
+  if (isConnected) {
+    socket.send(JSON.stringify({
+      commands: currentCommandStrings,
+      timestamp: Date.now()
+    }));
   }
 
-  console.log(currentCommandStrings);
+  if (statusScreenOn) {
+    UpdateRoverStatus()
+  }
 
-  socket.send(JSON.stringify({
-    commands: currentCommandStrings,
-    timestamp: Date.now()
-  }));
-  
   // console.log(currentGamepad);
-  
-  
+
+
 }, 100);
 
