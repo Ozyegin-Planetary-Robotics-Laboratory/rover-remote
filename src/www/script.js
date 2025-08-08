@@ -1,4 +1,3 @@
-
 const screens = [
   {
     id: "Blank",
@@ -32,7 +31,7 @@ const screens = [
         <input type="checkbox" id='kolkontrol'></input>
         <div class="footer">
           <div id="output">X: 0.00, Y: 0.00</div>
-          <div id="connection-status">Not connected</div>
+          <div id="ConnectionStatus">Not connected</div>
           <div class="settings">
             <label for="ip-address">Bridge IP Address:</label>
             <input type="text" id="ip-address" value="192.168.1.3">
@@ -71,9 +70,9 @@ let windowId = 0;
 const windowSizeIncrement = 10;
 let currentWindows = []
 
+// Controller
 let controllerScreenOldState = false;
 const controllerDeadzone = 0.1
-
 
 let controllerId = ""
 let buttonFunctionsString = ""
@@ -101,7 +100,8 @@ const buttonFunctions = [
   {id: "DOF4Down", type: "Button"},
   {id: "DOF4Up", type: "Button"},
 
-  {id: "EndEffector", type: "Axis"},
+  {id: "EndEffectorCCW", type: "Button"},
+  {id: "EndEffectorCW", type: "Button"},
 
   {id: "GripperOpen", type: "Button"},
   {id: "GripperClose", type: "Button"},
@@ -122,223 +122,263 @@ const controllerConfigs = [
     {axis: 2, func: "DOF1"},
     {axis: 5, func: "DOF2"},
   ]},
+  {id: "Xbox 360 Controller (XInput STANDARD GAMEPAD)", config: [
+    {button: 13, func: "ScienceDown"},
+    {button: 12, func: "ScienceUp"},
+    {button: 4, func: "GripperOpen"},
+    {button: 5, func: "GripperClose"},
+    {button: 3, func: "DOF3Down"},
+    {button: 0, func: "DOF3Up"},
+    {button: 2, func: "DOF4Down"},
+    {button: 1, func: "DOF4Up"},
+    {button: 6, func: "EndEffectorCCW"},
+    {button: 7, func: "EndEffectorCW"},
+    {axis: 0, func: "LocoAngular"},
+    {axis: 1, func: "LocoLinear"},
+    {axis: 2, func: "DOF1"},
+    {axis: 3, func: "DOF2"},
+  ]},
+  {id: "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", config: [
+    {button: 13, func: "ScienceDown"},
+    {button: 12, func: "ScienceUp"},
+    {button: 4, func: "GripperOpen"},
+    {button: 5, func: "GripperClose"},
+    {button: 3, func: "DOF3Down"},
+    {button: 0, func: "DOF3Up"},
+    {button: 2, func: "DOF4Down"},
+    {button: 1, func: "DOF4Up"},
+    {button: 6, func: "EndEffectorCCW"},
+    {button: 7, func: "EndEffectorCW"},
+    {axis: 0, func: "LocoAngular"},
+    {axis: 1, func: "LocoLinear"},
+    {axis: 2, func: "DOF1"},
+    {axis: 3, func: "DOF2"},
+  ]},
   
 ]
 
-document.getElementById('ip-address').value = document.location.host.split(':')[0]
-document.addEventListener('DOMContentLoaded', function () {
+// Connection
+const connectionStatus = document.getElementById('ConnectionStatus');
+const ipAdress = document.location.host.split(':')[0]
+const port = 8765
+let isConnected = false
+
+connectToBridge()
+
+// document.getElementById('ip-address').value = document.location.host.split(':')[0]
+// document.addEventListener('DOMContentLoaded', function () {
   
-  const container = document.getElementById('joystick-container');
-  const colorpicker = document.getElementById('html5colorpicker');
-  const armcom = document.getElementById('html5armcom');
-  const motpar = document.getElementById('motorparam');
-  const knob = document.getElementById('joystick-knob');
-  const output = document.getElementById('output');
-  const emergencyBtn = document.getElementById('emergency-btn');
-  const connectBtn = document.getElementById('connect-btn');
-  const connectionStatus = document.getElementById('connection-status');
-  const ipAddressInput = document.getElementById('ip-address');
-  const portInput = document.getElementById('port');
-  const kolbox = document.getElementById('kolkontrol');
-  let isEmergency = false;
-  let isDragging = false;
-  let currentX = 0;
-  let currentY = 0;
-  let socket = null;
-  let isConnected = false;
-  let sendInterval = null;
-  let pingInterval = null;
-  let scienceUp = 0
-  let scienceDown = 0
-  let scienceDrill = 0
-  let arm1 = 0
-  let arm2 = 0
-  let arm3 = 0
-  let arm4 = 0
-  let armClockwise = 0
-  let gripper = 0
-  let gripperClockwise = 0
-  const DEADZONE_THRESHOLD = 0.1;
-  let reconnectAttempts = 0;
-  const MAX_RECONNECT_ATTEMPTS = 5;
+//   const container = document.getElementById('joystick-container');
+//   const colorpicker = document.getElementById('html5colorpicker');
+//   const armcom = document.getElementById('html5armcom');
+//   const motpar = document.getElementById('motorparam');
+//   const knob = document.getElementById('joystick-knob');
+//   const output = document.getElementById('output');
+//   const emergencyBtn = document.getElementById('emergency-btn');
+//   const connectBtn = document.getElementById('connect-btn');
+//   // const connectionStatus = document.getElementById('connection-status');
+//   const ipAddressInput = document.getElementById('ip-address');
+//   const portInput = document.getElementById('port');
+//   const kolbox = document.getElementById('kolkontrol');
+//   let isEmergency = false;
+//   let isDragging = false;
+//   let currentX = 0;
+//   let currentY = 0;
+//   let socket = null;
+//   let isConnected = false;
+//   let sendInterval = null;
+//   let pingInterval = null;
+//   let scienceUp = 0
+//   let scienceDown = 0
+//   let scienceDrill = 0
+//   let arm1 = 0
+//   let arm2 = 0
+//   let arm3 = 0
+//   let arm4 = 0
+//   let armClockwise = 0
+//   let gripper = 0
+//   let gripperClockwise = 0
+//   const DEADZONE_THRESHOLD = 0.1;
+//   let reconnectAttempts = 0;
+//   const MAX_RECONNECT_ATTEMPTS = 5;
 
-  // Get container dimensions and center position
-  let containerRect = container.getBoundingClientRect();
-  let centerX = containerRect.width / 2;
-  let centerY = containerRect.height / 2;
+//   // Get container dimensions and center position
+//   let containerRect = container.getBoundingClientRect();
+//   let centerX = containerRect.width / 2;
+//   let centerY = containerRect.height / 2;
 
-  // Maximum distance the joystick can move from center (radius - knob radius)
-  let maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
+//   // Maximum distance the joystick can move from center (radius - knob radius)
+//   let maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
 
-  // Function to apply a deadzone
-  function applyDeadzone(value, deadzone) {
-    if (Math.abs(value) < deadzone) {
-      return 0.0;
-    }
-    return value;
-  }
+//   // Function to apply a deadzone
+//   function applyDeadzone(value, deadzone) {
+//     if (Math.abs(value) < deadzone) {
+//       return 0.0;
+//     }
+//     return value;
+//   }
 
 
 
-  // Connect button functionality
-  connectBtn.addEventListener('click', function () {
-    if (isConnected) {
-      disconnectFromBridge();
-    } else {
-      connectToBridge();
-    }
-  });
+//   // Connect button functionality
+//   connectBtn.addEventListener('click', function () {
+//     if (isConnected) {
+//       disconnectFromBridge();
+//     } else {
+//       connectToBridge();
+//     }
+//   });
 
-  connectBtn.addEventListener('input', function () {
+//   connectBtn.addEventListener('input', function () {
 
-  });
+//   });
 
-  // Emergency button functionality
-  emergencyBtn.addEventListener('click', function () {
-    isEmergency = !isEmergency;
+//   // Emergency button functionality
+//   emergencyBtn.addEventListener('click', function () {
+//     isEmergency = !isEmergency;
 
-    if (isEmergency) {
-      container.classList.add('disabled');
-      knob.classList.add('emergency');
-      emergencyBtn.textContent = 'RESUME CONTROL';
-      emergencyBtn.classList.add('active');
-      resetJoystickPosition();
+//     if (isEmergency) {
+//       container.classList.add('disabled');
+//       knob.classList.add('emergency');
+//       emergencyBtn.textContent = 'RESUME CONTROL';
+//       emergencyBtn.classList.add('active');
+//       resetJoystickPosition();
 
-      // Send emergency stop command
-      if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          command: 'emergency_stop',
-          timestamp: Date.now()
-        }));
-        connectionStatus.textContent = 'Emergency stop command sent';
-      }
-    } else {
-      container.classList.remove('disabled');
-      knob.classList.remove('emergency');
-      emergencyBtn.textContent = 'EMERGENCY STOP';
-      emergencyBtn.classList.remove('active');
+//       // Send emergency stop command
+//       if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
+//         socket.send(JSON.stringify({
+//           command: 'emergency_stop',
+//           timestamp: Date.now()
+//         }));
+//         connectionStatus.textContent = 'Emergency stop command sent';
+//       }
+//     } else {
+//       container.classList.remove('disabled');
+//       knob.classList.remove('emergency');
+//       emergencyBtn.textContent = 'EMERGENCY STOP';
+//       emergencyBtn.classList.remove('active');
 
-      // Send resume command
-      if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          command: 'resume_control',
-          timestamp: Date.now()
-        }));
-        connectionStatus.textContent = 'Control resumed';
-      }
-    }
-  });
+//       // Send resume command
+//       if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
+//         socket.send(JSON.stringify({
+//           command: 'resume_control',
+//           timestamp: Date.now()
+//         }));
+//         connectionStatus.textContent = 'Control resumed';
+//       }
+//     }
+//   });
 
-  // Function to update dimensions on resize
-  function updateDimensions() {
-    containerRect = container.getBoundingClientRect();
-    centerX = containerRect.width / 2;
-    centerY = containerRect.height / 2;
-    maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
-  }
+//   // Function to update dimensions on resize
+//   function updateDimensions() {
+//     containerRect = container.getBoundingClientRect();
+//     centerX = containerRect.width / 2;
+//     centerY = containerRect.height / 2;
+//     maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
+//   }
 
-  // Update dimensions on window resize
-  window.addEventListener('resize', updateDimensions);
+//   // Update dimensions on window resize
+//   window.addEventListener('resize', updateDimensions);
 
-  // Function to update joystick position
-  function updateJoystickPosition(clientX, clientY) {
-    if (isEmergency) return;
+//   // Function to update joystick position
+//   function updateJoystickPosition(clientX, clientY) {
+//     if (isEmergency) return;
 
-    // Calculate position relative to container center
-    const containerRect = container.getBoundingClientRect();
-    let deltaX = clientX - containerRect.left - centerX;
-    let deltaY = clientY - containerRect.top - centerY;
+//     // Calculate position relative to container center
+//     const containerRect = container.getBoundingClientRect();
+//     let deltaX = clientX - containerRect.left - centerX;
+//     let deltaY = clientY - containerRect.top - centerY;
 
-    // Calculate distance from center
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+//     // Calculate distance from center
+//     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-    // If distance is greater than max, normalize
-    if (distance > maxDistance) {
-      const angle = Math.atan2(deltaY, deltaX);
-      deltaX = Math.cos(angle) * maxDistance;
-      deltaY = Math.sin(angle) * maxDistance;
-    }
+//     // If distance is greater than max, normalize
+//     if (distance > maxDistance) {
+//       const angle = Math.atan2(deltaY, deltaX);
+//       deltaX = Math.cos(angle) * maxDistance;
+//       deltaY = Math.sin(angle) * maxDistance;
+//     }
 
-    // Update knob position
-    knob.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+//     // Update knob position
+//     knob.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
 
-    // Calculate normalized values (-1 to 1)
-    if (kolbox["checked"] == false) {
-      currentX = parseFloat((deltaX / maxDistance).toFixed(2));
-      currentY = parseFloat((-deltaY / maxDistance).toFixed(2)); // Invert Y axis to match the C++ code
-    }
-    // Update output display
-    output.textContent = `X: ${currentX.toFixed(2)}, Y: ${currentY.toFixed(2)}`;
-  }
+//     // Calculate normalized values (-1 to 1)
+//     if (kolbox["checked"] == false) {
+//       currentX = parseFloat((deltaX / maxDistance).toFixed(2));
+//       currentY = parseFloat((-deltaY / maxDistance).toFixed(2)); // Invert Y axis to match the C++ code
+//     }
+//     // Update output display
+//     output.textContent = `X: ${currentX.toFixed(2)}, Y: ${currentY.toFixed(2)}`;
+//   }
 
-  // Function to reset joystick position
-  function resetJoystickPosition() {
-    knob.style.transform = 'translate(-50%, -50%)';
-    currentX = 0;
-    currentY = 0;
-    output.textContent = 'X: 0.00, Y: 0.00';
-  }
+//   // Function to reset joystick position
+//   function resetJoystickPosition() {
+//     knob.style.transform = 'translate(-50%, -50%)';
+//     currentX = 0;
+//     currentY = 0;
+//     output.textContent = 'X: 0.00, Y: 0.00';
+//   }
 
-  // Mouse event handlers
-  container.addEventListener('mousedown', function (e) {
-    if (isEmergency) return;
-    isDragging = true;
-    updateJoystickPosition(e.clientX, e.clientY);
-  });
+//   // Mouse event handlers
+//   container.addEventListener('mousedown', function (e) {
+//     if (isEmergency) return;
+//     isDragging = true;
+//     updateJoystickPosition(e.clientX, e.clientY);
+//   });
 
-  document.addEventListener('mousemove', function (e) {
-    if (isDragging && !isEmergency) {
-      updateJoystickPosition(e.clientX, e.clientY);
-    }
-  });
+//   document.addEventListener('mousemove', function (e) {
+//     if (isDragging && !isEmergency) {
+//       updateJoystickPosition(e.clientX, e.clientY);
+//     }
+//   });
 
-  document.addEventListener('mouseup', function () {
-    if (isDragging) {
-      isDragging = false;
-      resetJoystickPosition();
-    }
-  });
+//   document.addEventListener('mouseup', function () {
+//     if (isDragging) {
+//       isDragging = false;
+//       resetJoystickPosition();
+//     }
+//   });
 
-  // Touch event handlers
-  container.addEventListener('touchstart', function (e) {
-    if (isEmergency) return;
-    isDragging = true;
-    updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-    e.preventDefault(); // Prevent scrolling
-  });
+//   // Touch event handlers
+//   container.addEventListener('touchstart', function (e) {
+//     if (isEmergency) return;
+//     isDragging = true;
+//     updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
+//     e.preventDefault(); // Prevent scrolling
+//   });
 
-  document.addEventListener('touchmove', function (e) {
-    if (isDragging && !isEmergency) {
-      updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-      e.preventDefault(); // Prevent scrolling
-    }
-  });
+//   document.addEventListener('touchmove', function (e) {
+//     if (isDragging && !isEmergency) {
+//       updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
+//       e.preventDefault(); // Prevent scrolling
+//     }
+//   });
 
-  document.addEventListener('touchend', function () {
-    if (isDragging) {
-      isDragging = false;
-      resetJoystickPosition();
-    }
-  });
+//   document.addEventListener('touchend', function () {
+//     if (isDragging) {
+//       isDragging = false;
+//       resetJoystickPosition();
+//     }
+//   });
 
-  // Handle page visibility changes to prevent sending data when tab is not active
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden && isDragging) {
-      isDragging = false;
-      resetJoystickPosition();
-    }
-  });
+//   // Handle page visibility changes to prevent sending data when tab is not active
+//   document.addEventListener('visibilitychange', function () {
+//     if (document.hidden && isDragging) {
+//       isDragging = false;
+//       resetJoystickPosition();
+//     }
+//   });
 
-  // Handle page unload to clean up connection
-  window.addEventListener('beforeunload', function () {
-    if (isConnected && socket) {
-      socket.close(1000, 'Page unloaded');
-    }
-  });
+//   // Handle page unload to clean up connection
+//   window.addEventListener('beforeunload', function () {
+//     if (isConnected && socket) {
+//       socket.close(1000, 'Page unloaded');
+//     }
+//   });
 
-  // Initialize dimensions
-  updateDimensions();
-});
+//   // Initialize dimensions
+//   updateDimensions();
+// });
 
 
 AddWindow()
@@ -353,7 +393,7 @@ function AddWindow(){
   document.getElementById("WindowsDiv").innerHTML += `
     <div style="width: 100%" id="window${windowId}" class="WindowClass">
       <div class="WindowTopClass">
-        <select onchange="SelectScreen('screenDiv${windowId}', this.value)" name="" class="SelectBoxClass WindowSelectBox">
+        <select id="WindowSelectBox${windowId}" onchange="SelectScreen('screenDiv${windowId}', this.value)" name="" class="SelectBoxClass WindowSelectBox">
           ${screenSelectBoxString}
         </select>
         <div class="WindowControlDiv">
@@ -389,7 +429,32 @@ function SelectScreen(screenDivId, screenId){
   document.getElementById(screenDivId).innerHTML = GetScreenHTML(screenId)
   const windowId = "window" + screenDivId.slice("screenDiv".length)
   
-  FindProperty(currentWindows, "windowId", windowId).screenId = screenId
+  FindProperty(currentWindows, "windowId", windowId).screenId = screenId  
+  UpdateScreenSelectBoxOptions()
+}
+
+function UpdateScreenSelectBoxOptions(){
+  for (let a = 0; a < currentWindows.length; a++) {
+    const window = currentWindows[a];
+    const selectboxId = "WindowSelectBox" + window.windowId.slice("window".length)
+    const children = document.getElementById(selectboxId).children
+
+    for (let i = 0; i < children.length; i++) {
+      const option = children[i];
+
+      if(option.value != "Blank" && window.screenId != option.value && FindProperty(currentWindows, "screenId", option.value)){
+        option.disabled = true
+      }
+      // After some changes the value of the selectbox started to change when a new window is added.
+      // I have no idea why. The else if condition below is for temporary fix.
+      else if(window.screenId == option.value){
+        option.selected = true
+      }
+      else{
+        option.disabled = false
+      }
+    } 
+  }
 }
 
 function ChangeWindowSize(id, size){
@@ -402,6 +467,7 @@ function CloseWindow(id){
   document.getElementById(id).remove();
   const index = currentWindows.indexOf(id)
   currentWindows.splice(index, 1)
+  UpdateScreenSelectBoxOptions()
 }
 
 function ChangeOrder(id, direction){
@@ -448,20 +514,16 @@ function GetControllerConfigFunction(type, id){
 //#endregion
 
 //#region Connection
-connectToBridge()
-function connectToBridge() {
-    // const ipAddress = ipAddressInput.value;
-    const ipAdress = document.location.host.split(':')[0]
-    // const port = portInput.value;
-    const port = 8765
+
+function connectToBridge() {    
     reconnectAttempts = 0;
 
     try {
       // Create WebSocket connection
-      connectionStatus.textContent = `Connecting to bridge at ${ipAddress}:${port}...`;
+      connectionStatus.textContent = `Connecting to bridge at ${ipAdress}:${port}...`;
 
       // Use WebSocket protocol (ws:// or wss:// for secure)
-      socket = new WebSocket(`ws://${ipAddress}:${port}`);
+      socket = new WebSocket(`ws://${ipAdress}:${port}`);
 
       // Connection opened
       socket.addEventListener('open', function (event) {
@@ -727,6 +789,7 @@ setInterval(() => {
       const controllerButton = document.getElementById("controllerButton" + a)
       if(button.pressed) controllerButton.classList.add("ControlButtonActiveClass")
       else controllerButton.classList.remove("ControlButtonActiveClass")
+      controllerButton.textContent = a + ": " + button.value.toFixed(4)
     }
       
 
@@ -752,20 +815,22 @@ setInterval(() => {
       const controllerAxis = document.getElementById("controllerAxis" + a)
       controllerAxis.textContent = a + ": " + axis.toFixed(4)
     }
-    console.log(currentGamepad.axes[0])
   }
   else{
     controllerScreenOldState = false
   }
   
   if(currentGamepad == null) return  
+
+  let currentCommandStrings = []
   
   // Button Func
   for (let i = 0; i < currentGamepad.buttons.length; i++) {
     const button = currentGamepad.buttons[i];
     if(!button.pressed) continue
     
-    console.log(GetControllerConfigFunction("button", i));
+    const commandString = GetControllerConfigFunction("button", i) + "#" + button.value.toFixed(4)
+    currentCommandStrings.push(commandString)
   }
 
   // Axis Func
@@ -773,7 +838,14 @@ setInterval(() => {
     const axis = currentGamepad.axes[i];
     if(Math.abs(axis) < controllerDeadzone) continue
     
-    console.log(GetControllerConfigFunction("axis", i));
+    const commandString = GetControllerConfigFunction("axis", i) + "#" + axis.toFixed(4)
+    
+    currentCommandStrings.push(commandString)
   }
+
+  console.log(currentCommandStrings);
+  
+  // console.log(currentGamepad);
+  
   
 }, 100);

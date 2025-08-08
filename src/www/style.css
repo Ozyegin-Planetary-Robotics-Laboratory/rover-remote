@@ -299,19 +299,17 @@ h1 {
   color: #ffffff;
 }
 
-#connection-status {
-  margin-bottom: 20px;
-  padding: 10px;
+#ConnectionStatus {
+  padding: 0.5rem 1rem;
   border-radius: 8px;
-  width: 80vw;
   max-width: 300px;
   text-align: center;
-  font-size: 16px;
+  font-size: 1rem;
   background-color: #333;
   color: #ff9500;
 }
 
-#connection-status.connected {
+#ConnectionStatus.connected {
   background-color: rgba(76, 217, 100, 0.2);
   color: #4cd964;
 }
