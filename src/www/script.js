@@ -598,32 +598,32 @@ function connectToBridge() {
       });
 
       // Connection closed
-      socket.addEventListener('close', function (event) {
-        if (isConnected) {
-          isConnected = false;
-          connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
-          connectionStatus.classList.remove('connected');
-          connectBtn.textContent = 'CONNECT';
-          connectBtn.classList.remove('connected');
+      // socket.addEventListener('close', function (event) {
+      //   if (isConnected) {
+      //     isConnected = false;
+      //     connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
+      //     connectionStatus.classList.remove('connected');
+      //     // connectBtn.textContent = 'CONNECT';
+      //     // connectBtn.classList.remove('connected');
 
-          if (sendInterval) {
-            clearInterval(sendInterval);
-            sendInterval = null;
-          }
+      //     // if (sendInterval) {
+      //     //   clearInterval(sendInterval);
+      //     //   sendInterval = null;
+      //     // }
 
-          if (pingInterval) {
-            clearInterval(pingInterval);
-            pingInterval = null;
-          }
+      //     // if (pingInterval) {
+      //     //   clearInterval(pingInterval);
+      //     //   pingInterval = null;
+      //     // }
 
-          // Try to reconnect if not manually disconnected
-          if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            reconnectAttempts++;
-            connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
-            setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
-          }
-        }
-      });
+      //     // Try to reconnect if not manually disconnected
+      //     // if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      //     //   reconnectAttempts++;
+      //     //   connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
+      //     //   setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
+      //     // }
+      //   }
+      // });
 
       // Connection error
       socket.addEventListener('error', function (error) {
@@ -637,15 +637,15 @@ function connectToBridge() {
     }
 }
 function disconnectFromBridge() {
-    if (sendInterval) {
-      clearInterval(sendInterval);
-      sendInterval = null;
-    }
+    // if (sendInterval) {
+    //   clearInterval(sendInterval);
+    //   sendInterval = null;
+    // }
 
-    if (pingInterval) {
-      clearInterval(pingInterval);
-      pingInterval = null;
-    }
+    // if (pingInterval) {
+    //   clearInterval(pingInterval);
+    //   pingInterval = null;
+    // }
 
     if (socket) {
       // Send a clean disconnect message if possible

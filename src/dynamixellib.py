@@ -55,21 +55,3 @@ def set_dynamixel_speed(
     # Send speed
     packetHandler.write2ByteTxRx(portHandler, dxl_id, ADDR_MOVING_SPEED, dxl_speed)
 
-
-set_dynamixel_speed(
-    dxl_id=1,
-    port="/dev/ttyUSB1",
-    baudrate=57600,
-    speed=10,
-    direction="CW"
-)
-
-time.sleep(1)
-
-set_dynamixel_speed(
-    dxl_id=1,
-    port="/dev/ttyUSB1",
-    baudrate=57600,
-    speed=0,
-    direction="CW"
-)
