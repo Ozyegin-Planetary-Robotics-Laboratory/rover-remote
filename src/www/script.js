@@ -408,7 +408,7 @@ connectToBridge()
 AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
-SelectScreen("screenDiv1", "ManipulatorScreen")
+// SelectScreen("screenDiv1", "ManipulatorScreen")
 
 //#region FUNCTIONS
 
@@ -539,7 +539,7 @@ function GetControllerConfigFunction(type, id){
 //#endregion
 
 //#region ManipulatorScreen
-updateArm(45,-45,-45)
+// updateArm(45,-45,-45)
 function updateArm(dof2, dof3, dof4) {
   document.getElementById('ManipulatorDOF1').style.transform = `rotate(${dof2}deg)`;
   document.getElementById('ManipulatorDOF2').style.transform = `rotate(${dof3}deg)`;
@@ -881,6 +881,11 @@ setInterval(() => {
   }
 
   console.log(currentCommandStrings);
+
+  socket.send(JSON.stringify({
+    commands: currentCommandStrings,
+    timestamp: Date.now()
+  }));
   
   // console.log(currentGamepad);
   
