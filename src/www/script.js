@@ -1,8 +1,12 @@
+
+// Windows
 const screens = [
   {
     id: "Blank",
     html: `
-      <span>Select a screen</span
+      <div class="BlankScreenClass">
+        <span class="SelectScreenSpanClass">Select a screen</span
+      </div>
     `
   },
   {
@@ -163,6 +167,9 @@ const colorConfigs = [
   },
 
 ]
+
+let isResizingWindow = false;
+let cursorStartX, windowStartWidth, currentResizingWindowId;
 
 // Controller
 let controllerScreenOldState = false;
@@ -510,8 +517,6 @@ function AddWindow() {
           ${screenSelectBoxString}
         </select>
         <div class="WindowControlDiv">
-          <button onclick="ChangeWindowSize('window${windowId}', -1)" class="WindowControlButtonClass">-</button>
-          <button onclick="ChangeWindowSize('window${windowId}', 1)" class="WindowControlButtonClass">+</button>
           <button onclick="ChangeOrder('window${windowId}', -1)" class="WindowControlButtonClass"><</button>
           <button onclick="ChangeOrder('window${windowId}', 1)" class="WindowControlButtonClass">></button>
           <button onclick="CloseWindow('window${windowId}')" style="border: none;" class="WindowControlButtonClass">x</button>
@@ -519,9 +524,43 @@ function AddWindow() {
       </div>
       <div id="screenDiv${windowId}"></div>
     </div>
+    <div onmousedown="WindowResizeBarMouseDown(event, 'window${windowId}')" id="WindowResizeBar${windowId}" class="WindowResizeBarClass"></div>
   `
   currentWindows.push({ windowId: 'window' + windowId, screenId: "Blank" })
   SelectScreen('screenDiv' + windowId, "Blank")
+}
+
+function WindowResizeBarMouseDown(e, windowId) {
+  isResizingWindow = true
+  currentResizingWindowId = windowId
+
+  const windowElem = document.getElementById(windowId)
+
+  const measuredWidth = windowElem.getBoundingClientRect().width
+  windowElem.style.width = measuredWidth + 'px'
+  windowElem.style.flex = "0 0 auto"
+
+  cursorStartX = e.clientX
+  windowStartWidth = measuredWidth
+
+  document.addEventListener('mousemove', WindowResizeMouseMove)
+  document.addEventListener('mouseup', WindowResizeMouseUp)
+
+  e.preventDefault()
+}
+
+function WindowResizeMouseMove(e) {
+  if (!isResizingWindow) return
+  const diffX = e.clientX - cursorStartX
+  let newWidth = windowStartWidth + diffX
+  if (newWidth < 150) newWidth = 150
+  document.getElementById(currentResizingWindowId).style.width = newWidth + 'px'
+}
+
+function WindowResizeMouseUp() {
+  isResizingWindow = false
+  document.removeEventListener('mousemove', WindowResizeMouseMove)
+  document.removeEventListener('mouseup', WindowResizeMouseUp)
 }
 
 function GetScreenHTML(id) {
@@ -570,11 +609,11 @@ function UpdateScreenSelectBoxOptions() {
   }
 }
 
-function ChangeWindowSize(id, size) {
-  const targetWindow = document.getElementById(id)
-  console.log(parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size)
-  targetWindow.style.width = (parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size) + "%";
-}
+// function ChangeWindowSize(id, size) {
+//   const targetWindow = document.getElementById(id)
+//   console.log(parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size)
+//   targetWindow.style.width = (parseInt(targetWindow.style.width.slice(0, -1)) + windowSizeIncrement * size) + "%";
+// }
 
 function CloseWindow(id) {
   document.getElementById(id).remove();
@@ -595,10 +634,19 @@ function ChangeOrder(id, direction) {
   currentWindows.splice(index + direction, 0, window)
 
   for (let i = 0; i < currentWindows.length; i++) {
-    const window = document.getElementById(currentWindows[i].windowId);
-    window.style.order = i
+    const windowId = currentWindows[i].windowId
+    const window = document.getElementById(windowId);
+    const windowResizeBarId = "WindowResizeBar" + windowId.slice("window".length)
+    const windowResizeBar = document.getElementById(windowResizeBarId)
+    
+    const flexIndex = (i+1)*2
+
+    window.style.order = flexIndex
+    windowResizeBar.style.order = flexIndex + 1
   }
 }
+
+
 
 //#endregion
 
