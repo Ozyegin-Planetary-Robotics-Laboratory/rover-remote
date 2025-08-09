@@ -102,12 +102,12 @@ const screens = [
         <div class="RoverStatusSectionClass" id="LedControlDiv">
           <span>Colors</span>
           <div>
-            <button style="background-color: var(--color-red);" class="LedButtonClass"></button>
-            <button style="background-color: var(--color-green);" class="LedButtonClass"></button>
-            <button style="background-color: var(--color-blue);" class="LedButtonClass"></button>
-            <button style="background-color: var(--color-yellow);" class="LedButtonClass"></button>
-            <button style="background-color: var(--color-pink);" class="LedButtonClass"></button>
-            <button style="background-color: var(--color-cyan);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('1')" style="background-color: var(--color-red);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('2')" style="background-color: var(--color-green);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('3')" style="background-color: var(--color-blue);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('4')" style="background-color: var(--color-yellow);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('5')" style="background-color: var(--color-pink);" class="LedButtonClass"></button>
+            <button onclick="LedChangeColor('6')" style="background-color: var(--color-cyan);" class="LedButtonClass"></button>
           </div>
         </div>
       </div>
@@ -203,7 +203,8 @@ const buttonFunctions = [
 
 const controllerConfigs = [
   {
-    id: "PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", config: [
+    ids: ["PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", "My-Power CO.,LTD. PS(R) Controller Adaptor (STANDARD GAMEPAD Vendor: 054c Product: 0268)"],
+    config: [
       { button: 14, func: "ScienceDown" },
       { button: 12, func: "ScienceUp" },
       { button: 4, func: "GripperOpen" },
@@ -219,25 +220,8 @@ const controllerConfigs = [
     ]
   },
   {
-    id: "Xbox 360 Controller (XInput STANDARD GAMEPAD)", config: [
-      { button: 13, func: "ScienceDown" },
-      { button: 12, func: "ScienceUp" },
-      { button: 4, func: "GripperOpen" },
-      { button: 5, func: "GripperClose" },
-      { button: 3, func: "DOF3Down" },
-      { button: 0, func: "DOF3Up" },
-      { button: 2, func: "DOF4Down" },
-      { button: 1, func: "DOF4Up" },
-      { button: 6, func: "EndEffectorCCW" },
-      { button: 7, func: "EndEffectorCW" },
-      { axis: 0, func: "LocoAngular" },
-      { axis: 1, func: "LocoLinear" },
-      { axis: 2, func: "DOF1" },
-      { axis: 3, func: "DOF2" },
-    ]
-  },
-  {
-    id: "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", config: [
+    ids: ["Xbox 360 Controller (XInput STANDARD GAMEPAD)", "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)"],
+    config: [
       { button: 13, func: "ScienceDown" },
       { button: 12, func: "ScienceUp" },
       { button: 4, func: "GripperOpen" },
@@ -256,6 +240,10 @@ const controllerConfigs = [
   },
 
 ]
+
+// StatusScreen
+let targetLedColor = ""
+let disableLedButtons = false
 
 // Connection
 const connectionStatus = document.getElementById('ConnectionStatus');
@@ -608,9 +596,14 @@ function PrintControllerId() {
 }
 
 function GetControllerConfigFunction(type, id) {
-  const config = FindProperty(controllerConfigs, "id", controllerId).config
-  const subConfig = FindProperty(config, type, id)
-  return subConfig != undefined ? subConfig.func : "none"
+  for (let i = 0; i < controllerConfigs.length; i++) {
+    const controllerConfig = controllerConfigs[i];
+    if(controllerConfig.ids.includes(controllerId)){
+      const config = controllerConfig.config
+      const subConfig = FindProperty(config, type, id)
+      return subConfig != undefined ? subConfig.func : "none"
+    }
+  }
 }
 //#endregion
 
@@ -639,6 +632,31 @@ function UpdateRoverStatus() {
     const locoStatusSpeed = document.getElementById("LocoStatusSpeed" + (i + 1))
     locoStatusSpeed.textContent = speed
     locoStatusSpeed.style.color = ColorCalculator("speed", speed)
+  }
+}
+
+function LedChangeColor(color){
+  if(disableLedButtons) return
+  targetLedColor = color
+  LedButtonStateChanger(false)
+  disableLedButtons = true
+
+  setTimeout(() => {
+    disableLedButtons = false
+    LedButtonStateChanger(true)
+  }, 1000);
+}
+
+function LedButtonStateChanger(enabled){
+  const ledButtons = document.getElementsByClassName("LedButtonClass")
+  for (let i = 0; i < ledButtons.length; i++) {
+    const led = ledButtons[i];
+    if(enabled){
+      led.classList.remove("LedButtonDeactivatedClass")
+    }
+    else{
+      led.classList.add("LedButtonDeactivatedClass")
+    }
   }
 }
 //#endregion
@@ -924,7 +942,16 @@ setInterval(() => {
 
   // console.log(currentCommandStrings);
 
+  //send commmands
   if (isConnected) {
+    if(targetLedColor != ""){
+      currentCommandStrings.push("Led#" + targetLedColor)
+      targetLedColor = ""
+    }
+
+    console.log(currentCommandStrings);
+    
+
     socket.send(JSON.stringify({
       commands: currentCommandStrings,
       timestamp: Date.now()

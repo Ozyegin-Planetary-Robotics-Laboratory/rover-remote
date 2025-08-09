@@ -8,14 +8,14 @@ from TMotorCANControl.servo_serial import *
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-motors_dictionary = {"mv_1": "/dev/ttyUSB3", "mv_2": "/dev/ttyUSB4", 
-		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB2"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1", 
+		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB3"}  # Put serial ports. None means no port
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-color_port="/dev/ttyUSB5"
+color_port="/dev/ttyUSB6"
 
-science_port="/dev/ttyUSB6"
+science_port="/dev/ttyUSB5"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)
@@ -33,9 +33,15 @@ try:
         color=True
         port=color_port,
 
-
     def change_color(c):
-        color_serial.write(c)
+        if c == "red":
+            color_serial.write(b'r')
+        elif c == "green":
+            color_serial.write(b'g')
+        elif c == "blue":
+            color_serial.write(b'b')
+        else:
+            color_serial.write(c)
 except:
     def change_color(c):
         return False
@@ -78,7 +84,7 @@ def start_devs():
         for port in port_list:
             dev = TMotorManager_servo_serial(port=port, baud=962100)
             dev_list.append(dev)
-        sleep(3)
+        sleep(1)
         for dev in dev_list:
             dev.__enter__()
             dev.enter_velocity_control()

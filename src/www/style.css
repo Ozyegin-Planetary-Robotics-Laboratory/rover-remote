@@ -440,6 +440,9 @@ h1 {
   transform: scale(0.9);
   opacity: 0.5;
 }
+.LedButtonDeactivatedClass{
+  cursor: not-allowed;
+}
 #ConnectionDiv{
   position: absolute;
   width: 6rem;

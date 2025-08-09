@@ -8,6 +8,7 @@ import os
 import time
 import serial
 import dynamixellib
+from threading import Timer
 
 
 from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl
@@ -30,7 +31,7 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
-#start_bus()
+# start_bus()
 start_devs()
 
 dynamixelChanged = False
@@ -56,7 +57,6 @@ async def handle_websocket(websocket, path=None):
                 # print(data)
                 # commands = data["commands"]
 
-                loco = False
                 locoLinear = 0
                 locoAngular = 0
                 dynamixel = False
@@ -67,10 +67,8 @@ async def handle_websocket(websocket, path=None):
                     value = float(li[1])
 
                     if command == "LocoLinear":
-                        loco = True
                         locoLinear = value
                     elif command == "LocoAngular":
-                        loco = True
                         locoAngular = value
                     
                     #Science
@@ -104,10 +102,10 @@ async def handle_websocket(websocket, path=None):
                         set_velocity_loop(14, -10, 200)
                     
                     elif command == "EndEffectorCCW":
-                        dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CCW")
+                        #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CCW")
                         dynamixel = True
                     elif command == "EndEffectorCW":
-                        dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CW")
+                        #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CW")
                         dynamixel = True
                     
                     elif command == "GripperOpen":
@@ -115,121 +113,33 @@ async def handle_websocket(websocket, path=None):
                     elif command == "GripperClose":
                         scictl("l")
 
+                    elif command == "Led":
+                        change_color(b'x')
+                        timer1 = None
+                        timer2 = None
+                        # change_color(["red","blue","green"][int(value)%3])
+                        if value == 1: timer1 = Timer(0.5, change_color, ["red"])
+                        elif value == 2: timer1 = Timer(0.5, change_color, ["green"])
+                        elif value == 3: timer1 = Timer(0.5, change_color, ["blue"])
+                        elif value == 4: timer1 = Timer(0.5, change_color, ["red"]); timer2 = Timer(1.0, change_color, ["green"])
+                        elif value == 5: timer1 = Timer(0.5, change_color, ["red"]); timer2 = Timer(1.0, change_color, ["blue"])
+                        elif value == 6: timer1 = Timer(0.5, change_color, ["green"]); timer2 = Timer(1.0, change_color, ["blue"])
+                        
+                        if(timer1): timer1.start()
+                        if(timer2): timer2.start()
+
 
                 velocity_control_loco(locoAngular, locoLinear, "")
 
                 if not dynamixelChanged and dynamixelChanged:
-                    print("dumenden")
+                    print("dümenden")
                     dynamixelChanged = True
-                    dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1",57600,0, "CW")
+                    #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1",57600,0, "CW")
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
 
-                
-                # rgbd= data["rgb"]
-                # arm_com = data["arm_command"]
-                # #print(arm_com)
-                # motor_params = data["motorparams"]
-                # if rgbd == 'red':
-                #     change_color(b'r')
-                # if rgbd == 'green':
-                #     change_color(b'g')
-                # if rgbd == 'blue':
-                #     change_color(b'b')
-                # #print(data)
-                # if arm_com == 'c':
-                #     set_velocity_loop(12, 10, 200)
-                #     set_velocity_loop(12, 10, 200)
-                # if arm_com == 'v':
-                #     set_velocity_loop(13, 10, 200)
-                #     set_velocity_loop(13, 10, 200)
-                # if arm_com == 'n':
-                #     set_velocity_loop(16, 10, 200)
-                #     set_velocity_loop(16, 10, 200)
-                # if arm_com == 'b':
-                #     set_velocity_loop(14, 10, 200)
-                #     set_velocity_loop(14, 10, 200)
-                # if not arm_com=='b'  and not arm_com=='B':
-                #     set_current_brake(14,2.5)
-
-                # if arm_com == 'o':
-                #     scictl(b'o')
-                # if arm_com == 'l':
-                #     scictl(b'l')
-
-                # if arm_com == 'i':
-                #     scictl(b'i')
-                # if arm_com == 'k':
-                #     scictl(b'k')
-
-
-
-                # if arm_com == 'C':
-                #     set_velocity_loop(12, -10, 200)
-                #     set_velocity_loop(12, -10, 200)
-                # if arm_com == 'V':
-                #     set_velocity_loop(13, -10, 200)
-                #     set_velocity_loop(13, -10, 200)
-                # if arm_com == 'N':
-                #     set_velocity_loop(16, -10, 200)
-                #     set_velocity_loop(16, -10, 200)
-                # if arm_com == 'B':
-                #     set_velocity_loop(14, -10, 200)
-                #     set_velocity_loop(14, -10, 200)
-
-
-                # if arm_com == 'u':
-                #     dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,10,"CW")
-                #     degree=(degree+10)
-                # if arm_com == 'j':
-                #     dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,10,"CCW")
-                #     degree=(degree-10)
-                # if arm_com == 'h':
-                #     dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB1",57600,0,"CW")
-                #     degree=(degree-10)
-
-                # if arm_com == 'cam':
-                #     os.system("python3 /home/kaine/camlk/main.py")
-
-                # if "linear" in data and "angular" in data:
-                #     linear, angular = data["linear"], data["angular"]
-                #     #print(can_recive())
-                #     # if linear!=0 or angular!=0:
-                #     velocity_control_loco(angular, linear, motor_params)
-                #     await websocket.send(json.dumps({"status": "sent", "linear": linear, "angular": angular}))
-                # # if "dyna" in data and data["dynaspeed"]!=[-1,-1]:
-                # #     if data["dynaspeed"].index(max(data["dynaspeed"]))==0:
-                # #         dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,(max(data["dynaspeed"])+1)*20,"CCW")
-                # #         #print("CCW",(max(data["dynaspeed"])+1)*20 )
-                # #     elif data["dynaspeed"].index(max(data["dynaspeed"]))==1:
-                # #         dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,(max(data["dynaspeed"])+1)*20,"CW")
-                # #         #print("CW",(max(data["dynaspeed"])+1)*20 )
-
-                # elif data["dynaspeed"]==[-1,-1]:
-                #     dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,0,"CW")
-                #     #print("-1,-1")
-                # elif "command" in data:
-                #     command = data["command"]
-
-                #     if command == "emergency_stop":
-                #         #set_brake_current(5,2)
-                #         #set_brake_current(3,2)
-                #         #print(can_recive())
-                #         await websocket.send(json.dumps({"status": "emergency_stop_sent"}))
-
-                #     elif command == "resume_control":
-                #         print("Resume control received")
-                #         await websocket.send(json.dumps({"status": "resume_control_acknowledged"}))
-
-                #     elif command == "disconnect":
-                #         print(f"Client {client_address} requested disconnect")
-                #         break
-
-                #     elif command == "ping":
-                #         await websocket.send(json.dumps({"status": "pong", "timestamp": data.get("timestamp", 0)}))
-
             except json.JSONDecodeError:
-                print(f"Invalid JSON received: {message}")
+                print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")
                 await websocket.send(json.dumps({"status": "error", "message": "Invalid JSON format"}))
 
             except Exception as e:
@@ -244,6 +154,7 @@ async def handle_websocket(websocket, path=None):
         active_connections.remove(websocket)
         print(f"Connection from {client_address} closed, {len(active_connections)} active connections")
 
+
 # Graceful shutdown
 async def shutdown():
     print("Shutting down server...")
@@ -251,7 +162,6 @@ async def shutdown():
     if active_connections:
         print(f"Closing {len(active_connections)} active connections...")
         await asyncio.gather(*(conn.close(1001, "Server shutdown") for conn in active_connections), return_exceptions=True)
-
 
 # Main function
 async def main():
@@ -269,7 +179,6 @@ async def main():
     finally:
         server.close()
         await server.wait_closed()
-
 
 if __name__ == "__main__":
     try:
