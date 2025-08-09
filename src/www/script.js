@@ -494,9 +494,9 @@ const latencySpan = document.getElementById("LatencySpan")
 
 AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
-SelectScreen("screenDiv1", "ControllerScreen")
+// SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
-// SelectScreen("screenDiv1", "StatusScreen")
+SelectScreen("screenDiv1", "StatusScreen")
 
 //#region FUNCTIONS
 
@@ -714,7 +714,10 @@ function connectToBridge() {
       try {
         const response = JSON.parse(event.data);
         console.log('Message from bridge:', response);
-        const currentTime = new Date()
+        
+        const currentTime = new Date().getTime()
+        console.log(currentTime);
+
         const latency = currentTime - response.timestamp
         latencySpan.textContent = latency
         latencySpan.style.color = ColorCalculator("latency", latency)
@@ -806,8 +809,6 @@ function disconnectFromBridge() {
   isConnected = false;
   connectionStatus.textContent = 'Disconnected';
   connectionStatus.classList.remove('connected');
-  connectBtn.textContent = 'CONNECT';
-  connectBtn.classList.remove('connected');
   reconnectAttempts = 0;
 }
 //#endregion
@@ -974,7 +975,7 @@ setInterval(() => {
       targetLedColor = ""
     }
 
-    console.log(currentCommandStrings);
+    if(currentCommandStrings.length > 0) console.log(currentCommandStrings);
     
 
     socket.send(JSON.stringify({
