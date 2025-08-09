@@ -202,6 +202,7 @@ const buttonFunctions = [
 ]
 
 const controllerConfigs = [
+  // PS2 Oğuzhan
   {
     ids: ["PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", "My-Power CO.,LTD. PS(R) Controller Adaptor (STANDARD GAMEPAD Vendor: 054c Product: 0268)"],
     config: [
@@ -219,8 +220,29 @@ const controllerConfigs = [
       { axis: 5, func: "DOF2" },
     ]
   },
+  // Xbox Uraz
   {
-    ids: ["Xbox 360 Controller (XInput STANDARD GAMEPAD)", "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)"],
+    ids: ["Xbox 360 Controller (XInput STANDARD GAMEPAD)", "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", "Microsoft Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b12)"],
+    config: [
+      { button: 13, func: "ScienceDown" },
+      { button: 12, func: "ScienceUp" },
+      { button: 4, func: "GripperOpen" },
+      { button: 5, func: "GripperClose" },
+      { button: 3, func: "DOF3Down" },
+      { button: 0, func: "DOF3Up" },
+      { button: 2, func: "DOF4Down" },
+      { button: 1, func: "DOF4Up" },
+      { button: 6, func: "EndEffectorCCW" },
+      { button: 7, func: "EndEffectorCW" },
+      { axis: 0, func: "LocoAngular" },
+      { axis: 1, func: "LocoLinear" },
+      { axis: 2, func: "DOF1" },
+      { axis: 3, func: "DOF2" },
+    ]
+  },
+  // 8bitdo Emre
+  {
+    ids: ["Windows için Xbox 360 Denetleyicisi (STANDARD GAMEPAD)"],
     config: [
       { button: 13, func: "ScienceDown" },
       { button: 12, func: "ScienceUp" },
@@ -252,6 +274,7 @@ const port = 8765
 let isConnected = false
 const latencySpan = document.getElementById("LatencySpan")
 
+//#region oldcode
 // document.getElementById('ip-address').value = document.location.host.split(':')[0]
 // document.addEventListener('DOMContentLoaded', function () {
 
@@ -467,12 +490,13 @@ const latencySpan = document.getElementById("LatencySpan")
 //   updateDimensions();
 // });
 
+//#endregion
 
 AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
-// SelectScreen("screenDiv1", "ControllerScreen")
+SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
-SelectScreen("screenDiv1", "StatusScreen")
+// SelectScreen("screenDiv1", "StatusScreen")
 
 //#region FUNCTIONS
 
@@ -842,6 +866,7 @@ setInterval(() => {
 
     }
   }
+  
 
   if (!controllerScreenOldState && controllerScreenOn) controllerChanged = true
 
