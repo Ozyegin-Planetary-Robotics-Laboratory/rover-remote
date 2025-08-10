@@ -129,7 +129,7 @@ async def handle_websocket(websocket, path=None):
                         if(timer2): timer2.start()
 
 
-                velocity_control_loco(locoAngular, locoLinear, "")
+                velocity_control_loco(locoAngular/4, locoLinear/2, "")
 
                 if not dynamixelChanged and dynamixelChanged:
                     print("dümenden")
@@ -137,6 +137,9 @@ async def handle_websocket(websocket, path=None):
                     #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1",57600,0, "CW")
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
+
+                timestamp = int(time.time() * 1000)
+                await websocket.send(json.dumps({"status": "still_connected", "message": "Command Confirmed", "timestamp": timestamp}))
 
             except json.JSONDecodeError:
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")

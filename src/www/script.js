@@ -292,6 +292,7 @@ const ipAdress = document.location.host.split(':')[0]
 const port = 8765
 let isConnected = false
 const latencySpan = document.getElementById("LatencySpan")
+let latestTimestamp = 0
 
 //#region oldcode
 // document.getElementById('ip-address').value = document.location.host.split(':')[0]
@@ -801,18 +802,17 @@ function connectToBridge() {
     socket.addEventListener('message', function (event) {
       try {
         const response = JSON.parse(event.data);
-        console.log('Message from bridge:', response);
+        // console.log('Message from bridge:', response);
         
-        const currentTime = new Date().getTime()
-        console.log(currentTime);
-
-        const latency = currentTime - response.timestamp
-        latencySpan.textContent = latency
-        latencySpan.style.color = ColorCalculator("latency", latency)
+        latestTimestamp = response.timestamp
 
         // Handle different response types
         if (response.status === 'connected') {
           console.log('Connection confirmed by bridge');
+          connectionStatus.textContent = 'Connected';
+          connectionStatus.classList.add('connected');
+        } else if (response.status === 'still_connected') {
+          
         } else if (response.status === 'sent') {
           // Data was successfully sent to the rover
           connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
@@ -1056,8 +1056,17 @@ setInterval(() => {
 
   // console.log(currentCommandStrings);
 
+
+ 
+
   //send commmands
   if (isConnected) {
+     // Latency
+    const currentTime = new Date().getTime()
+    const latency = currentTime - latestTimestamp
+    latencySpan.textContent = latency
+    latencySpan.style.color = ColorCalculator("latency", latency)
+
     if(targetLedColor != ""){
       currentCommandStrings.push("Led#" + targetLedColor)
       targetLedColor = ""
@@ -1070,6 +1079,10 @@ setInterval(() => {
       commands: currentCommandStrings,
       timestamp: Date.now()
     }));
+  }
+  else{
+    latencySpan.textContent = "-"
+    latencySpan.style.color = "white"
   }
 
   if (statusScreenOn) {
