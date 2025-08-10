@@ -31,15 +31,15 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
-# start_bus()
-start_devs()
+start_bus()
+# start_devs()
 
 dynamixelChanged = False
-
+armChanged = False
 
 # Handle WebSocket connections - updated to make path parameter optional
 async def handle_websocket(websocket, path=None):
-    global dynamixelChanged
+    global dynamixelChanged, armChanged
     client_address = websocket.remote_address
     print(f"New connection from {client_address}")
 
@@ -60,6 +60,7 @@ async def handle_websocket(websocket, path=None):
                 locoLinear = 0
                 locoAngular = 0
                 dynamixel = False
+                arm = False
 
                 for i in data["commands"]:
                     li = i.split("#")
@@ -79,27 +80,37 @@ async def handle_websocket(websocket, path=None):
                     
                     elif command == "DOF1Left":
                         set_velocity_loop(12, 10, 200)
+                        arm = True
                     elif command == "DOF1Right":
                         set_velocity_loop(12, -10, 200)
+                        arm = True
                     elif command == "DOF1":
                         set_velocity_loop(12, 10 * value, 200)
+                        arm = True
                     
                     elif command == "DOF2Up":
-                        set_velocity_loop(16, 10, 200)
-                    elif command == "DOF2Down":
                         set_velocity_loop(16, -10, 200)
+                        arm = True
+                    elif command == "DOF2Down":
+                        set_velocity_loop(16, 10, 200)
+                        arm = True
                     elif command == "DOF2":
-                        set_velocity_loop(16, 10 * value, 200)
+                        set_velocity_loop(16, -10 * value, 200)
+                        arm = True
                     
                     elif command == "DOF3Up":
                         set_velocity_loop(13, 10, 200)
+                        arm = True
                     elif command == "DOF3Down":
                         set_velocity_loop(13, -10, 200)
+                        arm = True
                     
                     elif command == "DOF4Up":
                         set_velocity_loop(14, 10, 200)
+                        arm = True
                     elif command == "DOF4Down":
                         set_velocity_loop(14, -10, 200)
+                        arm = True
                     
                     elif command == "EndEffectorCCW":
                         #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CCW")
@@ -130,6 +141,15 @@ async def handle_websocket(websocket, path=None):
 
 
                 velocity_control_loco(locoAngular/4, locoLinear/2, "")
+
+                if not armChanged and arm:
+                    armChanged = True
+                elif armChanged and not arm:
+                    armChanged = False
+                    set_velocity_loop(12, 0, 200)
+                    set_velocity_loop(13, 0, 200)
+                    set_velocity_loop(14, 0, 200)
+                    set_velocity_loop(16, 0, 200)
 
                 if not dynamixelChanged and dynamixelChanged:
                     print("dümenden")

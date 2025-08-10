@@ -13,9 +13,9 @@ motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1",
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-color_port="/dev/ttyUSB6"
+color_port="/dev/ttyUSB5"
 
-science_port="/dev/ttyUSB5"
+science_port="/dev/ttyUSB4"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)
