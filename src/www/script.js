@@ -45,7 +45,7 @@ const screens = [
     `
   },
   { id: "CameraScreen",
-    hmtl: `
+    html: `
       <div>
       <span>sea</span>
       </div>
