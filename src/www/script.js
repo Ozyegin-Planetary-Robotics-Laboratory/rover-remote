@@ -1,16 +1,14 @@
 
 // Windows
 const screens = [
-  {
-    id: "Blank",
+  { id: "Blank",
     html: `
       <div class="BlankScreenClass">
         <span class="SelectScreenSpanClass">Select a screen</span
       </div>
     `
   },
-  {
-    id: "MobileScreen",
+  { id: "MobileScreen",
     html: `
       <div id="MobileScreen">
         <div class="header">
@@ -46,16 +44,14 @@ const screens = [
       </div>
     `
   },
-  {
-    id: "CameraScreen",
+  { id: "CameraScreen",
     hmtl: `
       <div>
       <span>sea</span>
       </div>
     `
   },
-  {
-    id: "ControllerScreen",
+  { id: "ControllerScreen",
     html: `
     <div id="ControllerScreen">
      <div onclick="PrintControllerId()" id="PlayerNumber"></div>
@@ -64,8 +60,7 @@ const screens = [
     </div>
     `
   },
-  {
-    id: "StatusScreen",
+  {id: "StatusScreen",
     html: `
     <div id="StatusScreen">
       <div id="RoverStatusDiv">
@@ -106,20 +101,34 @@ const screens = [
         <div class="RoverStatusSectionClass" id="LedControlDiv">
           <span>Colors</span>
           <div>
-            <button onclick="LedChangeColor('1')" style="background-color: var(--color-red);" class="LedButtonClass"></button>
-            <button onclick="LedChangeColor('2')" style="background-color: var(--color-green);" class="LedButtonClass"></button>
-            <button onclick="LedChangeColor('3')" style="background-color: var(--color-blue);" class="LedButtonClass"></button>
-            <button onclick="LedChangeColor('4')" style="background-color: var(--color-yellow);" class="LedButtonClass"></button>
-            <button onclick="LedChangeColor('5')" style="background-color: var(--color-pink);" class="LedButtonClass"></button>
-            <button onclick="LedChangeColor('6')" style="background-color: var(--color-cyan);" class="LedButtonClass"></button>
+            <button id="LedButton1" onclick="LedChangeColor('1')" style="background-color: var(--color-red);" class="LedButtonClass"></button>
+            <button id="LedButton2" onclick="LedChangeColor('2')" style="background-color: var(--color-green);" class="LedButtonClass"></button>
+            <button id="LedButton3" onclick="LedChangeColor('3')" style="background-color: var(--color-blue);" class="LedButtonClass"></button>
+            <button id="LedButton4" onclick="LedChangeColor('4')" style="background-color: var(--color-yellow);" class="LedButtonClass"></button>
+            <button id="LedButton5" onclick="LedChangeColor('5')" style="background-color: var(--color-pink);" class="LedButtonClass"></button>
+            <button id="LedButton6" onclick="LedChangeColor('6')" style="background-color: var(--color-cyan);" class="LedButtonClass"></button>
+          </div>
+        </div>
+        <div class="RoverStatusSectionClass" id="SpeedControlDiv">
+          <span>Speed Control</span>
+          <div style="padding: 1rem 0rem;">
+            <div>
+              <span>Loco Speed</span>
+              <div id="LocoSpeedValue" class="SpeedControlValueDiv">-</div>
+              <input id="LocoSpeedSlider" oninput="SpeedControl('Loco', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
+            </div>
+            <div style="margin-top: 1rem;">
+              <span>Manipulator Speed</span>
+              <div id="ManipulatorSpeedValue" class="SpeedControlValueDiv">-</div>
+              <input id="ManipulatorSpeedSlider" oninput="SpeedControl('Manipulator', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
+            </div>
           </div>
         </div>
       </div>
     </div>
     `
   },
-  {
-    id: "ManipulatorScreen",
+  { id: "ManipulatorScreen",
     html: `
     <div id="ManipulatorScreen">
       <div id="ManipulatorContainer">
@@ -273,6 +282,9 @@ const controllerConfigs = [
 // StatusScreen
 let targetLedColor = ""
 let disableLedButtons = false
+
+let locoSpeed = 50
+let manipulatorSpeed = 50
 
 // Connection
 const connectionStatus = document.getElementById('ConnectionStatus');
@@ -582,6 +594,14 @@ function SelectScreen(screenDivId, screenId) {
   const windowId = "window" + screenDivId.slice("screenDiv".length)
 
   FindProperty(currentWindows, "windowId", windowId).screenId = screenId
+  
+  if(screenId == "StatusScreen"){
+    document.getElementById("LocoSpeedSlider").value = locoSpeed
+    document.getElementById("ManipulatorSpeedSlider").value = manipulatorSpeed
+    document.getElementById("LocoSpeedValue").textContent = locoSpeed + "%"
+    document.getElementById("ManipulatorSpeedValue").textContent = manipulatorSpeed + "%"
+  }
+  
   UpdateScreenSelectBoxOptions()
 }
 
@@ -617,8 +637,12 @@ function UpdateScreenSelectBoxOptions() {
 
 function CloseWindow(id) {
   document.getElementById(id).remove();
+  const windowResizeBarId = "WindowResizeBar" + id.slice("window".length)
+  document.getElementById(windowResizeBarId).remove()
+
   const index = currentWindows.indexOf(id)
   currentWindows.splice(index, 1)
+
   UpdateScreenSelectBoxOptions()
 }
 
@@ -713,6 +737,11 @@ function LedChangeColor(color){
   LedButtonStateChanger(false)
   disableLedButtons = true
 
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById("LedButton" + i).style.border = "none"
+  }
+  document.getElementById("LedButton" + color).style.border = "3px solid white"
+
   setTimeout(() => {
     disableLedButtons = false
     LedButtonStateChanger(true)
@@ -730,6 +759,17 @@ function LedButtonStateChanger(enabled){
       led.classList.add("LedButtonDeactivatedClass")
     }
   }
+}
+
+function SpeedControl(type, value){
+  document.getElementById(type + "SpeedValue").textContent = value + "%"
+  if(type == "Loco"){    
+    locoSpeed = parseInt(value)
+  }
+  else if(type == "Manipulator"){
+    manipulatorSpeed = parseInt(value)
+  }
+  
 }
 //#endregion
 

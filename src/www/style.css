@@ -47,6 +47,31 @@ body {
   font-size: 1rem;
 }
 
+.SliderClass {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%; 
+  height: 1.2rem;
+  background: var(--color2);
+  outline: none;
+  border-radius: 0.6rem;
+}
+.SliderClass::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.2rem;
+  aspect-ratio: 1;
+  background: var(--color-blue);
+  cursor: pointer;
+  border-radius: 50%;
+}
+.SliderClass::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #04AA6D;
+  cursor: pointer;
+}
+
 #TopBar{
   display: flex;
   justify-content: space-evenly;
@@ -103,13 +128,16 @@ body {
   justify-content: center;
   align-items: center;
   border-radius: 0 0 0 0.4rem;
+  overflow: hidden;
   background-color: var(--color1);
+  /* background-color: red; */
 }
 .WindowControlButtonClass{
   background-color: transparent;
   color: var(--font-color);
   border: none;
   border-right: solid 2px var(--color2);
+  /* border-right: solid 2px red; */
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.8rem;
@@ -130,7 +158,10 @@ body {
   transition-duration: 100ms;
 }
 .WindowResizeBarClass:hover{
-  min-width: 1rem;
+  min-width: 0.6rem;
+}
+.WindowResizeBarClass:active{
+  background-color: var(--color-blue);
 }
 .BlankScreenClass{
   display: flex;
@@ -446,6 +477,7 @@ h1 {
   background-color: var(--color1);
   border-radius: 0.4rem;
   padding: 1rem;
+  max-width: 24rem;
 }
 .LedButtonClass{
   height: 2rem;
@@ -531,6 +563,15 @@ h1 {
 }
 .LocoStatusSpeedSpanClass::after{
   content: " RPM";
+}
+
+.SpeedControlValueDiv{
+  background-color: var(--color2);
+  padding: 0.4rem 1rem;
+  width: fit-content;
+  border-radius: 0.4rem;
+  display: inline-block;
+  margin-left: 1rem;
 }
 /* #endregion */
 
