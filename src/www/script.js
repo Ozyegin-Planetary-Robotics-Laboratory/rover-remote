@@ -46,9 +46,33 @@ const screens = [
   },
   { id: "CameraScreen",
     html: `
-      <div>
-      <span>sea</span>
-      </div>
+      <div class="container" id="video-container">
+
+        <div class="video-block">
+          <canvas class="vid" id="video-canvas" crossorigin="anonymous"></canvas>
+          <div class="controls">
+            <button onclick="moveLeft(this)"><</button>
+            <button onclick="moveRight(this)">></button>
+          </div>
+        </div>
+
+        <div class="video-block">
+          <canvas class="vid" id="video-canvas2" crossorigin="anonymous"></canvas>
+          <div class="controls">
+            <button onclick="moveLeft(this)"><</button>
+            <button onclick="moveRight(this)">><button>
+          </div>
+        </div>
+
+        <div class="video-block">
+          <canvas class="vid" id="video-canvas3" crossorigin="anonymous"></canvas>
+          <div class="controls">
+            <button onclick="moveLeft(this)"><<button>
+            <button onclick="moveRight(this)">></button>
+          </div>
+        </div>
+      <button onclick="downloadAllCanvases()">Download All Frames</button>
+    </div>
     `
   },
   { id: "ControllerScreen",
@@ -286,6 +310,24 @@ let disableLedButtons = false
 let locoSpeed = 50
 let manipulatorSpeed = 50
 
+// CameraScreen
+var player
+var player2
+var player3
+setTimeout(() => {
+  var canvas = document.getElementById('video-canvas');
+  var url = 'ws://' + document.location.hostname + ':8082/';
+  var player = new JSMpeg.Player(url, { canvas: canvas });
+
+  var canvas2 = document.getElementById('video-canvas2');
+  var url2 = 'ws://' + document.location.hostname + ':8084/';
+  var player2 = new JSMpeg.Player(url2, { canvas: canvas2 });
+
+  var canvas3 = document.getElementById('video-canvas3');
+  var url3 = 'ws://' + document.location.hostname + ':8086/';
+  var player3 = new JSMpeg.Player(url3, { canvas: canvas3 });
+}, 2000);
+
 // Connection
 const connectionStatus = document.getElementById('ConnectionStatus');
 const ipAdress = document.location.host.split(':')[0]
@@ -516,7 +558,8 @@ AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
-SelectScreen("screenDiv1", "StatusScreen")
+// SelectScreen("screenDiv1", "StatusScreen")
+SelectScreen("screenDiv1", "CameraScreen")
 
 //#region FUNCTIONS
 
@@ -774,6 +817,38 @@ function SpeedControl(type, value){
 }
 //#endregion
 
+//#region CameraScreen
+function moveLeft(button) {
+  const block = button.closest('.video-block');
+  const prev = block.previousElementSibling;
+  if (prev) {
+    block.parentNode.insertBefore(block, prev);
+  }
+}
+function moveRight(button) {
+  const block = button.closest('.video-block');
+  const next = block.nextElementSibling;
+  if (next) {
+    block.parentNode.insertBefore(next, block);
+  }
+}
+function downloadCanvas(canvas, filename) {
+  const image = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = image;
+  a.download = filename;
+  a.click();
+}
+function downloadAllCanvases() {
+  const canvas1 = document.getElementById("video-canvas");
+  const canvas2 = document.getElementById("video-canvas2");
+  const canvas3 = document.getElementById("video-canvas3");
+  if (canvas1) downloadCanvas(canvas1, "frame1.png");
+  if (canvas2) downloadCanvas(canvas2, "frame2.png");
+  if (canvas3) downloadCanvas(canvas3, "frame3.png");
+}
+//#endregion
+
 //#region Connection
 
 function connectToBridge() {
@@ -917,7 +992,6 @@ function ColorCalculator(type, value) {
   else if(value > tresholds[1]) return "var(--color-red)"
 }
 //#endregion
-
 
 //#endregion
 
