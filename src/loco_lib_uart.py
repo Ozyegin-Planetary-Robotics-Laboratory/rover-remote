@@ -9,13 +9,13 @@ from TMotorCANControl.servo_serial import *
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
 motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1", 
-		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB3"}  # Put serial ports. None means no port
+		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-color_port="/dev/ttyUSB5"
+color_port="/dev/ttyUSB6"
 
-science_port="/dev/ttyUSB4"
+science_port="/dev/ttyUSB5"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)

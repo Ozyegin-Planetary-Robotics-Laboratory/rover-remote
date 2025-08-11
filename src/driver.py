@@ -12,7 +12,7 @@ from threading import Timer
 
 
 from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl
-from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake
+from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
 
 
 #try:
@@ -31,15 +31,17 @@ WS_PORT = 8765          # WebSocket server port
 # Track active connections
 active_connections = set()
 
+armSpeed = 10
+
 start_bus()
-# start_devs()
+start_devs()
 
 dynamixelChanged = False
-armChanged = False
+dynamixelUSB = "/dev/ttyUSB3"
 
 # Handle WebSocket connections - updated to make path parameter optional
 async def handle_websocket(websocket, path=None):
-    global dynamixelChanged, armChanged
+    global dynamixelChanged
     client_address = websocket.remote_address
     print(f"New connection from {client_address}")
 
@@ -60,7 +62,7 @@ async def handle_websocket(websocket, path=None):
                 locoLinear = 0
                 locoAngular = 0
                 dynamixel = False
-                arm = False
+                DOFs = [False, False, False, False] # DOF1, DOF2, DOF3, DOF4 
 
                 for i in data["commands"]:
                     li = i.split("#")
@@ -79,50 +81,50 @@ async def handle_websocket(websocket, path=None):
                         scictl("i")
                     
                     elif command == "DOF1Left":
-                        set_velocity_loop(12, 10, 200)
-                        arm = True
+                        set_velocity_loop(12, armSpeed/3, 200)
+                        DOFs[0] = True
                     elif command == "DOF1Right":
-                        set_velocity_loop(12, -10, 200)
-                        arm = True
+                        set_velocity_loop(12, -armSpeed/3, 200)
+                        DOFs[0] = True
                     elif command == "DOF1":
-                        set_velocity_loop(12, 10 * value, 200)
-                        arm = True
+                        set_velocity_loop(12, armSpeed/3 * value, 200)
+                        DOFs[0] = True
                     
                     elif command == "DOF2Up":
-                        set_velocity_loop(16, -10, 200)
-                        arm = True
+                        set_velocity_loop(16, -armSpeed, 200)
+                        DOFs[1] = True
                     elif command == "DOF2Down":
-                        set_velocity_loop(16, 10, 200)
-                        arm = True
+                        set_velocity_loop(16, armSpeed, 200)
+                        DOFs[1] = True
                     elif command == "DOF2":
-                        set_velocity_loop(16, -10 * value, 200)
-                        arm = True
+                        set_velocity_loop(16, -armSpeed * value, 200)
+                        DOFs[1] = True
                     
                     elif command == "DOF3Up":
-                        set_velocity_loop(13, 10, 200)
-                        arm = True
+                        set_velocity_loop(13, armSpeed, 200)
+                        DOFs[2] = True
                     elif command == "DOF3Down":
-                        set_velocity_loop(13, -10, 200)
-                        arm = True
+                        set_velocity_loop(13, -armSpeed, 200)
+                        DOFs[2] = True
                     
                     elif command == "DOF4Up":
-                        set_velocity_loop(14, 10, 200)
-                        arm = True
+                        set_velocity_loop(14, armSpeed/6, 200)
+                        DOFs[3] = True
                     elif command == "DOF4Down":
-                        set_velocity_loop(14, -10, 200)
-                        arm = True
+                        set_velocity_loop(14, -armSpeed/6, 200)
+                        DOFs[3] = True
                     
                     elif command == "EndEffectorCCW":
-                        #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CCW")
+                        dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, int(30 * value), "CCW")
                         dynamixel = True
                     elif command == "EndEffectorCW":
-                        #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1", 57600, 10 * value, "CW")
+                        dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, int(30 * value), "CW")
                         dynamixel = True
                     
                     elif command == "GripperOpen":
-                        scictl("o")
+                        scictl(b"o")
                     elif command == "GripperClose":
-                        scictl("l")
+                        scictl(b"l")
 
                     elif command == "Led":
                         change_color(b'x')
@@ -142,25 +144,28 @@ async def handle_websocket(websocket, path=None):
 
                 velocity_control_loco(locoAngular/4, locoLinear/2, "")
 
-                if not armChanged and arm:
-                    armChanged = True
-                elif armChanged and not arm:
-                    armChanged = False
+                # Hold dof position if no command
+                if not DOFs[0]:
                     set_velocity_loop(12, 0, 200)
-                    set_velocity_loop(13, 0, 200)
-                    set_velocity_loop(14, 0, 200)
+                if not DOFs[1]:
                     set_velocity_loop(16, 0, 200)
+                if not DOFs[2]:
+                    set_velocity_loop(13, 0, 200)
+                if not DOFs[3]:
+                    set_velocity_loop(14, 0, 200)
 
-                if not dynamixelChanged and dynamixelChanged:
-                    print("dümenden")
+                # Stop dynamixel if no command
+                if not dynamixelChanged and dynamixel:
                     dynamixelChanged = True
-                    #dynamixellib.set_dynamixel_speed(1, "/dev/ttyUSB1",57600,0, "CW")
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
+                    dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, 0, "CW")
 
+                # Timestamp
                 timestamp = int(time.time() * 1000)
-                await websocket.send(json.dumps({"status": "still_connected", "message": "Command Confirmed", "timestamp": timestamp}))
-
+                can_recive()
+                await websocket.send(json.dumps({"status": "still_connected", "message": motor_situations, "timestamp": timestamp}))
+                
             except json.JSONDecodeError:
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")
                 await websocket.send(json.dumps({"status": "error", "message": "Invalid JSON format"}))

@@ -30,7 +30,7 @@ max_number_of_fail = 12
 
 bus = None
 
-motors_dictionary = {"mv_1":251, "mv_2":252, "mv_3":-1, "mv_4":254} #Put -1 if motor can not be reachable
+motors_dictionary = {"mv_1":16, "mv_2":12, "mv_3":13, "mv_4":14} #Put -1 if motor can not be reachable
 motors_directiones = {"mv_1":1, "mv_2":-1, "mv_3":1, "mv_4":-1} #Put -1 for reverse
 
 motor_situations = {value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}

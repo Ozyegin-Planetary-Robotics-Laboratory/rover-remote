@@ -207,6 +207,7 @@ let cursorStartX, windowStartWidth, currentResizingWindowId;
 // Controller
 let controllerScreenOldState = false;
 const controllerDeadzone = 0.1
+const controllerDOF1Deadzone = 0.5
 
 let controllerId = ""
 let buttonFunctionsString = ""
@@ -284,14 +285,14 @@ const controllerConfigs = [
   {
     ids: ["Windows için Xbox 360 Denetleyicisi (STANDARD GAMEPAD)"],
     config: [
-      { button: 13, func: "ScienceDown" },
-      { button: 12, func: "ScienceUp" },
+      { button: 0, func: "ScienceDown" },
+      { button: 3, func: "ScienceUp" },
       { button: 4, func: "GripperOpen" },
       { button: 5, func: "GripperClose" },
-      { button: 3, func: "DOF3Down" },
-      { button: 0, func: "DOF3Up" },
-      { button: 2, func: "DOF4Down" },
-      { button: 1, func: "DOF4Up" },
+      { button: 13, func: "DOF3Down" },
+      { button: 12, func: "DOF3Up" },
+      { button: 15, func: "DOF4Down" },
+      { button: 14, func: "DOF4Up" },
       { button: 6, func: "EndEffectorCCW" },
       { button: 7, func: "EndEffectorCW" },
       { axis: 0, func: "LocoAngular" },
@@ -887,7 +888,7 @@ function connectToBridge() {
           connectionStatus.textContent = 'Connected';
           connectionStatus.classList.add('connected');
         } else if (response.status === 'still_connected') {
-          
+          console.log(response);
         } else if (response.status === 'sent') {
           // Data was successfully sent to the rover
           connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
@@ -1109,8 +1110,9 @@ setInterval(() => {
     for (let i = 0; i < currentGamepad.buttons.length; i++) {
       const button = currentGamepad.buttons[i];
       if (!button.pressed) continue
-
-      const commandString = GetControllerConfigFunction("button", i) + "#" + button.value.toFixed(4)
+      
+      const configFunction = GetControllerConfigFunction("button", i)
+      const commandString = configFunction + "#" + button.value.toFixed(4)
       currentCommandStrings.push(commandString)
     }
 
@@ -1119,7 +1121,11 @@ setInterval(() => {
       const axis = currentGamepad.axes[i];
       if (Math.abs(axis) < controllerDeadzone) continue
 
-      const commandString = GetControllerConfigFunction("axis", i) + "#" + axis.toFixed(4)
+      const configFunction = GetControllerConfigFunction("axis", i)
+      if(configFunction == "DOF1"){
+        if(Math.abs(axis) < controllerDOF1Deadzone) continue
+      }
+      const commandString = configFunction + "#" + axis.toFixed(4)
 
       currentCommandStrings.push(commandString)
     }
