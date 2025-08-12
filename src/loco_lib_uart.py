@@ -13,8 +13,9 @@ motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1",
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-color_port="/dev/ttyUSB6"
+locoMotorInfo = {value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}
 
+color_port="/dev/ttyUSB6"
 science_port="/dev/ttyUSB5"
 
 try:
@@ -99,10 +100,10 @@ def send_velocity_uart(port_list, speed_list):
     #loop = SoftRealtimeLoop(dt=10, report=True, fade=0.8)
     for _ in range(10): #for t in loop:
         for i, dev in enumerate(dev_list):
-            print(i, dev)
+            # print(i, dev)
             dev.set_output_velocity_radians_per_second(speed_list[i])
             dev.update()
-            print(f"\r {dev}", end='')
+            # print(f"\r {dev}", end='')
 
 
 

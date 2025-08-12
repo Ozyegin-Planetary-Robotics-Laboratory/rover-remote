@@ -125,6 +125,7 @@ const screens = [
         <div class="RoverStatusSectionClass" id="LedControlDiv">
           <span>Colors</span>
           <div>
+            <button id="LedButton0" onclick="LedChangeColor('0')" style="background-color: black;" class="LedButtonClass">❌</button>
             <button id="LedButton1" onclick="LedChangeColor('1')" style="background-color: var(--color-red);" class="LedButtonClass"></button>
             <button id="LedButton2" onclick="LedChangeColor('2')" style="background-color: var(--color-green);" class="LedButtonClass"></button>
             <button id="LedButton3" onclick="LedChangeColor('3')" style="background-color: var(--color-blue);" class="LedButtonClass"></button>
@@ -207,7 +208,7 @@ let cursorStartX, windowStartWidth, currentResizingWindowId;
 // Controller
 let controllerScreenOldState = false;
 const controllerDeadzone = 0.1
-const controllerDOF1Deadzone = 0.5
+const controllerDOF1Deadzone = 0.25
 
 let controllerId = ""
 let buttonFunctionsString = ""
@@ -783,7 +784,7 @@ function LedChangeColor(color){
   disableLedButtons = true
 
   for (let i = 1; i <= 6; i++) {
-    document.getElementById("LedButton" + i).style.border = "none"
+    document.getElementById("LedButton" + i).style.border = "3px solid transparent"
   }
   document.getElementById("LedButton" + color).style.border = "3px solid white"
 
@@ -888,7 +889,7 @@ function connectToBridge() {
           connectionStatus.textContent = 'Connected';
           connectionStatus.classList.add('connected');
         } else if (response.status === 'still_connected') {
-          console.log(response);
+          // console.log(response.message.arm["13"]);
         } else if (response.status === 'sent') {
           // Data was successfully sent to the rover
           connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
@@ -1152,7 +1153,7 @@ setInterval(() => {
       targetLedColor = ""
     }
 
-    if(currentCommandStrings.length > 0) console.log(currentCommandStrings);
+    // if(currentCommandStrings.length > 0) console.log(currentCommandStrings);
     
 
     socket.send(JSON.stringify({

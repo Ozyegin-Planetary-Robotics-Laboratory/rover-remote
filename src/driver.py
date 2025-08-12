@@ -9,9 +9,10 @@ import time
 import serial
 import dynamixellib
 from threading import Timer
+import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, locoMotorInfo
 from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
 
 
@@ -37,7 +38,25 @@ start_bus()
 start_devs()
 
 dynamixelChanged = False
-dynamixelUSB = "/dev/ttyUSB3"
+dynamixelUSB = "/dev/ttyUSB3" # wll choose automatically after
+
+context = pyudev.Context()
+# deviceFilterStrings = ["HUB", "Hub", "Linux"]
+
+for device in context.list_devices(subsystem='tty'):
+    path = device.get('ID_PATH')
+    serial = device.get('ID_SERIAL')
+    if path and serial:
+        # dynamixel
+        if "AD01UZ2Y" in serial:
+            dynamixelUSB = device.device_node
+            print("dynamixel: " + device.device_node)
+        # nano
+        elif "1a86_USB_Serial" in serial:
+            print("nano: " + device.device_node)
+
+        # print(f"{device.device_node} - {serial} - {path}")
+
 
 # Handle WebSocket connections - updated to make path parameter optional
 async def handle_websocket(websocket, path=None):
@@ -55,7 +74,7 @@ async def handle_websocket(websocket, path=None):
             #print(message)
             try:
                 data = json.loads(message)
-                print(data)
+                if len(data["commands"]) > 0: print(data)
                 # print(data)
                 # commands = data["commands"]
 
@@ -122,9 +141,9 @@ async def handle_websocket(websocket, path=None):
                         dynamixel = True
                     
                     elif command == "GripperOpen":
-                        scictl(b"o")
+                        scictl(b'o\n')
                     elif command == "GripperClose":
-                        scictl(b"l")
+                        scictl(b'l\n')
 
                     elif command == "Led":
                         change_color(b'x')
@@ -164,7 +183,12 @@ async def handle_websocket(websocket, path=None):
                 # Timestamp
                 timestamp = int(time.time() * 1000)
                 can_recive()
-                await websocket.send(json.dumps({"status": "still_connected", "message": motor_situations, "timestamp": timestamp}))
+
+                message = {
+                    "loco": locoMotorInfo,
+                    "arm": motor_situations,
+                }
+                await websocket.send(json.dumps({"status": "still_connected", "message": message, "timestamp": timestamp}))
                 
             except json.JSONDecodeError:
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")

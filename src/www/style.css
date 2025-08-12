@@ -485,7 +485,7 @@ h1 {
   aspect-ratio: 1;
   border-radius: 0.4rem;
   margin: 1rem 1rem 0 0;
-  border: var(--font-color);
+  border: 3px solid transparent;
   cursor: pointer;
   transition-duration: 50ms;
 }
