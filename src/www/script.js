@@ -821,25 +821,24 @@ function SpeedControl(type, value){
 
 function SwitchLocoMotors(direction){
   let changeDirection = false
-  if(locoMotorDirection == "") changeDirection = true
+  let horizontal = false
+  let vertical = false
   
-  if(direction == "horizontal" && changeDirection){
-    locoMotorDirection = "01,23"
-    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color-blue)"
-    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
-  }
-  else if(direction == "vertical" && changeDirection){
-    locoMotorDirection ="02,13"
-    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
-    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color-blue)"
-  }
-  else{
-    locoMotorDirection = ""
-    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
-    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
-  }
+  if(locoMotorDirection.includes("01,23")) horizontal = true
+  if(locoMotorDirection.includes("02,13")) vertical = true
 
+  if(direction == "horizontal") horizontal = !horizontal
+  if(direction == "vertical") vertical = !vertical
 
+  if(horizontal && !vertical) locoMotorDirection = "01,23"
+  else if(!horizontal && vertical) locoMotorDirection = "02,13"
+  else if(horizontal && vertical) locoMotorDirection = "01,23,02,13"
+  else locoMotorDirection = ""
+  
+  document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
+  document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
+  if(horizontal) document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color-blue)"
+  if(vertical) document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color-blue)"
 }
 //#endregion
 
