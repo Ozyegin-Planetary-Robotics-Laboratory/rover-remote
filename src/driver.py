@@ -82,16 +82,20 @@ async def handle_websocket(websocket, path=None):
                 locoAngular = 0
                 dynamixel = False
                 DOFs = [False, False, False, False] # DOF1, DOF2, DOF3, DOF4 
+                mp = ""
 
                 for i in data["commands"]:
                     li = i.split("#")
                     command = li[0]
                     value = float(li[1])
+                    parameter = li[2]
 
                     if command == "LocoLinear":
                         locoLinear = value
+                        mp = parameter
                     elif command == "LocoAngular":
                         locoAngular = value
+                        mp = parameter
                     
                     #Science
                     elif command == "ScienceUp":
@@ -161,7 +165,7 @@ async def handle_websocket(websocket, path=None):
                         if(timer2): timer2.start()
 
 
-                velocity_control_loco(locoAngular/4, locoLinear/2, "")
+                velocity_control_loco(locoAngular/4, locoLinear/2, mp)
 
                 # Hold dof position if no command
                 if not DOFs[0]:

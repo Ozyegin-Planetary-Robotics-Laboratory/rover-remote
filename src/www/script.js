@@ -1,4 +1,3 @@
-
 // Windows
 const screens = [
   { id: "Blank",
@@ -89,12 +88,13 @@ const screens = [
     <div id="StatusScreen">
       <div id="RoverStatusDiv">
         <div class="RoverStatusSectionClass" id="LocoStatusDiv">
-          <div style="margin-right: 1rem;">
-            <div style="justify-content: start;" class="LocoStatusDivClass">
+          <div class="LocoStatusSideClass" style="margin-right: 1rem;">
+            <div class="LocoStatusDivClass">
               <span id="LocoStatusTemp1" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed1" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
-            <div style="justify-content: end;" class="LocoStatusDivClass">
+            <button id="SwitchLocoHorizontal" onclick="SwitchLocoMotors('horizontal')" class="ButtonClass SwitchButtonClass"><img class="SwitchIconClass" src="icons/SwitchArrows.png"></button>
+            <div class="LocoStatusDivClass">
               <span id="LocoStatusTemp2" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed2" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
@@ -104,12 +104,12 @@ const screens = [
             <img id="EmergencyButton" style="width: 5rem;" src="icons/EmergencyButton.png"></img>
           </div>
           
-
-          <div style="margin-left: 1rem;">
+          <div class="LocoStatusSideClass" style="margin-left: 1rem;">
             <div style="justify-content: start;" class="LocoStatusDivClass">
               <span id="LocoStatusTemp3" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed3" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
+            <button id="SwitchLocoVertical" onclick="SwitchLocoMotors('vertical')" class="ButtonClass SwitchButtonClass"><img style="transform: rotate(90deg);" class="SwitchIconClass" src="icons/SwitchArrows.png"></button>
             <div style="justify-content: end;" class="LocoStatusDivClass">
               <span id="LocoStatusTemp4" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
               <span id="LocoStatusSpeed4" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
@@ -311,6 +311,7 @@ let disableLedButtons = false
 
 let locoSpeed = 50
 let manipulatorSpeed = 50
+let locoMotorDirection = ""
 
 // CameraScreen
 var player
@@ -560,8 +561,8 @@ AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
-// SelectScreen("screenDiv1", "StatusScreen")
-SelectScreen("screenDiv1", "CameraScreen")
+SelectScreen("screenDiv1", "StatusScreen")
+// SelectScreen("screenDiv1", "CameraScreen")
 
 //#region FUNCTIONS
 
@@ -816,6 +817,29 @@ function SpeedControl(type, value){
     manipulatorSpeed = parseInt(value)
   }
   
+}
+
+function SwitchLocoMotors(direction){
+  let changeDirection = false
+  if(locoMotorDirection == "") changeDirection = true
+  
+  if(direction == "horizontal" && changeDirection){
+    locoMotorDirection = "01,23"
+    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color-blue)"
+    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
+  }
+  else if(direction == "vertical" && changeDirection){
+    locoMotorDirection ="02,13"
+    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
+    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color-blue)"
+  }
+  else{
+    locoMotorDirection = ""
+    document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
+    document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
+  }
+
+
 }
 //#endregion
 
@@ -1121,12 +1145,20 @@ setInterval(() => {
     for (let i = 0; i < currentGamepad.axes.length; i++) {
       const axis = currentGamepad.axes[i];
       if (Math.abs(axis) < controllerDeadzone) continue
-
+      
       const configFunction = GetControllerConfigFunction("axis", i)
+      let parameter = ""
+
       if(configFunction == "DOF1"){
         if(Math.abs(axis) < controllerDOF1Deadzone) continue
       }
-      const commandString = configFunction + "#" + axis.toFixed(4)
+      if(configFunction == "LocoLinear" || configFunction == "LocoAngular"){
+        parameter = locoMotorDirection  
+        console.log(parameter);
+      }
+
+      const commandString = configFunction + "#" + axis.toFixed(4) + "#" + parameter
+      
 
       currentCommandStrings.push(commandString)
     }
