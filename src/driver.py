@@ -88,7 +88,8 @@ async def handle_websocket(websocket, path=None):
                     li = i.split("#")
                     command = li[0]
                     value = float(li[1])
-                    parameter = li[2]
+                    parameter = ""
+                    if len(li) > 2: parameter = li[2]
 
                     if command == "LocoLinear":
                         locoLinear = value
@@ -131,17 +132,17 @@ async def handle_websocket(websocket, path=None):
                         DOFs[2] = True
                     
                     elif command == "DOF4Up":
-                        set_velocity_loop(14, armSpeed/6, 200)
+                        set_velocity_loop(14, -armSpeed/6, 200)
                         DOFs[3] = True
                     elif command == "DOF4Down":
-                        set_velocity_loop(14, -armSpeed/6, 200)
+                        set_velocity_loop(14, armSpeed/6, 200)
                         DOFs[3] = True
                     
                     elif command == "EndEffectorCCW":
-                        dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, int(30 * value), "CCW")
+                        await DynamixelControl(int(30 * value), "CW") # Reverse direction due to gear
                         dynamixel = True
                     elif command == "EndEffectorCW":
-                        dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, int(30 * value), "CW")
+                        await DynamixelControl(int(30 * value), "CCW") # Reverse direction due to gear
                         dynamixel = True
                     
                     elif command == "GripperOpen":
@@ -182,7 +183,8 @@ async def handle_websocket(websocket, path=None):
                     dynamixelChanged = True
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
-                    dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, 0, "CW")
+                    print("aloo")
+                    await DynamixelControl(0, "CW")
 
                 # Timestamp
                 timestamp = int(time.time() * 1000)
@@ -210,6 +212,10 @@ async def handle_websocket(websocket, path=None):
         active_connections.remove(websocket)
         print(f"Connection from {client_address} closed, {len(active_connections)} active connections")
 
+
+# speed: int, direction: "CW" or "CCW"
+async def DynamixelControl(speed, direction):
+    dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, speed, direction)
 
 # Graceful shutdown
 async def shutdown():

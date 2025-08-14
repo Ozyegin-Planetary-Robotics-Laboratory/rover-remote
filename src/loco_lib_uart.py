@@ -201,8 +201,7 @@ def velocity_control_loco(x, y, mp):
         newVelocities = velocities
         
     velocities = newVelocities
-    
-    print(velocities)
+
     for i in range(4):
         motor_name = "mv_" + str(i + 1)
         motor_speeds[motor_name] = velocities[i]*((-1)*i%2)

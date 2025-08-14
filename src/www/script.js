@@ -45,29 +45,29 @@ const screens = [
   },
   { id: "CameraScreen",
     html: `
-      <div class="container" id="video-container">
+      <div class="CameraContainer" id="video-container">
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas" crossorigin="anonymous"></canvas>
-          <div class="controls">
-            <button onclick="moveLeft(this)"><</button>
-            <button onclick="moveRight(this)">></button>
+          <div class="CameraControlsDiv">
+            <button class="ButtonClass" onclick="moveLeft(this)"><</button>
+            <button class="ButtonClass" onclick="moveRight(this)">></button>
           </div>
         </div>
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas2" crossorigin="anonymous"></canvas>
-          <div class="controls">
-            <button onclick="moveLeft(this)"><</button>
-            <button onclick="moveRight(this)">><button>
+          <div class="CameraControlsDiv">
+            <button class="ButtonClass" onclick="moveLeft(this)"><</button>
+            <button class="ButtonClass" onclick="moveRight(this)">><button>
           </div>
         </div>
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas3" crossorigin="anonymous"></canvas>
-          <div class="controls">
-            <button onclick="moveLeft(this)"><<button>
-            <button onclick="moveRight(this)">></button>
+          <div class="CameraControlsDiv">
+            <button class="ButtonClass" onclick="moveLeft(this)"><<button>
+            <button class="ButtonClass" onclick="moveRight(this)">></button>
           </div>
         </div>
       <button onclick="downloadAllCanvases()">Download All Frames</button>
@@ -314,22 +314,7 @@ let manipulatorSpeed = 50
 let locoMotorDirection = ""
 
 // CameraScreen
-var player
-var player2
-var player3
-setTimeout(() => {
-  var canvas = document.getElementById('video-canvas');
-  var url = 'ws://' + document.location.hostname + ':8082/';
-  var player = new JSMpeg.Player(url, { canvas: canvas });
-
-  var canvas2 = document.getElementById('video-canvas2');
-  var url2 = 'ws://' + document.location.hostname + ':8084/';
-  var player2 = new JSMpeg.Player(url2, { canvas: canvas2 });
-
-  var canvas3 = document.getElementById('video-canvas3');
-  var url3 = 'ws://' + document.location.hostname + ':8086/';
-  var player3 = new JSMpeg.Player(url3, { canvas: canvas3 });
-}, 2000);
+var cameraPlayer1, cameraPlayer2, cameraPlayer3
 
 // Connection
 const connectionStatus = document.getElementById('ConnectionStatus');
@@ -338,224 +323,6 @@ const port = 8765
 let isConnected = false
 const latencySpan = document.getElementById("LatencySpan")
 let latestTimestamp = 0
-
-//#region oldcode
-// document.getElementById('ip-address').value = document.location.host.split(':')[0]
-// document.addEventListener('DOMContentLoaded', function () {
-
-//   const container = document.getElementById('joystick-container');
-//   const colorpicker = document.getElementById('html5colorpicker');
-//   const armcom = document.getElementById('html5armcom');
-//   const motpar = document.getElementById('motorparam');
-//   const knob = document.getElementById('joystick-knob');
-//   const output = document.getElementById('output');
-//   const emergencyBtn = document.getElementById('emergency-btn');
-//   const connectBtn = document.getElementById('connect-btn');
-//   // const connectionStatus = document.getElementById('connection-status');
-//   const ipAddressInput = document.getElementById('ip-address');
-//   const portInput = document.getElementById('port');
-//   const kolbox = document.getElementById('kolkontrol');
-//   let isEmergency = false;
-//   let isDragging = false;
-//   let currentX = 0;
-//   let currentY = 0;
-//   let socket = null;
-//   let isConnected = false;
-//   let sendInterval = null;
-//   let pingInterval = null;
-//   let scienceUp = 0
-//   let scienceDown = 0
-//   let scienceDrill = 0
-//   let arm1 = 0
-//   let arm2 = 0
-//   let arm3 = 0
-//   let arm4 = 0
-//   let armClockwise = 0
-//   let gripper = 0
-//   let gripperClockwise = 0
-//   const DEADZONE_THRESHOLD = 0.1;
-//   let reconnectAttempts = 0;
-//   const MAX_RECONNECT_ATTEMPTS = 5;
-
-//   // Get container dimensions and center position
-//   let containerRect = container.getBoundingClientRect();
-//   let centerX = containerRect.width / 2;
-//   let centerY = containerRect.height / 2;
-
-//   // Maximum distance the joystick can move from center (radius - knob radius)
-//   let maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
-
-//   // Function to apply a deadzone
-//   function applyDeadzone(value, deadzone) {
-//     if (Math.abs(value) < deadzone) {
-//       return 0.0;
-//     }
-//     return value;
-//   }
-
-
-
-//   // Connect button functionality
-//   connectBtn.addEventListener('click', function () {
-//     if (isConnected) {
-//       disconnectFromBridge();
-//     } else {
-//       connectToBridge();
-//     }
-//   });
-
-//   connectBtn.addEventListener('input', function () {
-
-//   });
-
-//   // Emergency button functionality
-//   emergencyBtn.addEventListener('click', function () {
-//     isEmergency = !isEmergency;
-
-//     if (isEmergency) {
-//       container.classList.add('disabled');
-//       knob.classList.add('emergency');
-//       emergencyBtn.textContent = 'RESUME CONTROL';
-//       emergencyBtn.classList.add('active');
-//       resetJoystickPosition();
-
-//       // Send emergency stop command
-//       if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
-//         socket.send(JSON.stringify({
-//           command: 'emergency_stop',
-//           timestamp: Date.now()
-//         }));
-//         connectionStatus.textContent = 'Emergency stop command sent';
-//       }
-//     } else {
-//       container.classList.remove('disabled');
-//       knob.classList.remove('emergency');
-//       emergencyBtn.textContent = 'EMERGENCY STOP';
-//       emergencyBtn.classList.remove('active');
-
-//       // Send resume command
-//       if (isConnected && socket && socket.readyState === WebSocket.OPEN) {
-//         socket.send(JSON.stringify({
-//           command: 'resume_control',
-//           timestamp: Date.now()
-//         }));
-//         connectionStatus.textContent = 'Control resumed';
-//       }
-//     }
-//   });
-
-//   // Function to update dimensions on resize
-//   function updateDimensions() {
-//     containerRect = container.getBoundingClientRect();
-//     centerX = containerRect.width / 2;
-//     centerY = containerRect.height / 2;
-//     maxDistance = (containerRect.width / 2) - (knob.offsetWidth / 2);
-//   }
-
-//   // Update dimensions on window resize
-//   window.addEventListener('resize', updateDimensions);
-
-//   // Function to update joystick position
-//   function updateJoystickPosition(clientX, clientY) {
-//     if (isEmergency) return;
-
-//     // Calculate position relative to container center
-//     const containerRect = container.getBoundingClientRect();
-//     let deltaX = clientX - containerRect.left - centerX;
-//     let deltaY = clientY - containerRect.top - centerY;
-
-//     // Calculate distance from center
-//     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-//     // If distance is greater than max, normalize
-//     if (distance > maxDistance) {
-//       const angle = Math.atan2(deltaY, deltaX);
-//       deltaX = Math.cos(angle) * maxDistance;
-//       deltaY = Math.sin(angle) * maxDistance;
-//     }
-
-//     // Update knob position
-//     knob.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
-
-//     // Calculate normalized values (-1 to 1)
-//     if (kolbox["checked"] == false) {
-//       currentX = parseFloat((deltaX / maxDistance).toFixed(2));
-//       currentY = parseFloat((-deltaY / maxDistance).toFixed(2)); // Invert Y axis to match the C++ code
-//     }
-//     // Update output display
-//     output.textContent = `X: ${currentX.toFixed(2)}, Y: ${currentY.toFixed(2)}`;
-//   }
-
-//   // Function to reset joystick position
-//   function resetJoystickPosition() {
-//     knob.style.transform = 'translate(-50%, -50%)';
-//     currentX = 0;
-//     currentY = 0;
-//     output.textContent = 'X: 0.00, Y: 0.00';
-//   }
-
-//   // Mouse event handlers
-//   container.addEventListener('mousedown', function (e) {
-//     if (isEmergency) return;
-//     isDragging = true;
-//     updateJoystickPosition(e.clientX, e.clientY);
-//   });
-
-//   document.addEventListener('mousemove', function (e) {
-//     if (isDragging && !isEmergency) {
-//       updateJoystickPosition(e.clientX, e.clientY);
-//     }
-//   });
-
-//   document.addEventListener('mouseup', function () {
-//     if (isDragging) {
-//       isDragging = false;
-//       resetJoystickPosition();
-//     }
-//   });
-
-//   // Touch event handlers
-//   container.addEventListener('touchstart', function (e) {
-//     if (isEmergency) return;
-//     isDragging = true;
-//     updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-//     e.preventDefault(); // Prevent scrolling
-//   });
-
-//   document.addEventListener('touchmove', function (e) {
-//     if (isDragging && !isEmergency) {
-//       updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-//       e.preventDefault(); // Prevent scrolling
-//     }
-//   });
-
-//   document.addEventListener('touchend', function () {
-//     if (isDragging) {
-//       isDragging = false;
-//       resetJoystickPosition();
-//     }
-//   });
-
-//   // Handle page visibility changes to prevent sending data when tab is not active
-//   document.addEventListener('visibilitychange', function () {
-//     if (document.hidden && isDragging) {
-//       isDragging = false;
-//       resetJoystickPosition();
-//     }
-//   });
-
-//   // Handle page unload to clean up connection
-//   window.addEventListener('beforeunload', function () {
-//     if (isConnected && socket) {
-//       socket.close(1000, 'Page unloaded');
-//     }
-//   });
-
-//   // Initialize dimensions
-//   updateDimensions();
-// });
-
-//#endregion
 
 AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
@@ -647,6 +414,21 @@ function SelectScreen(screenDivId, screenId) {
     document.getElementById("ManipulatorSpeedSlider").value = manipulatorSpeed
     document.getElementById("LocoSpeedValue").textContent = locoSpeed + "%"
     document.getElementById("ManipulatorSpeedValue").textContent = manipulatorSpeed + "%"
+  }
+  else if(screenId == "CameraScreen"){
+    setTimeout(() => {
+      let canvas = document.getElementById('video-canvas');
+      let url = 'ws://' + document.location.hostname + ':8082/';
+      cameraPlayer1 = new JSMpeg.Player(url, { canvas: canvas });
+
+      let canvas2 = document.getElementById('video-canvas2');
+      let url2 = 'ws://' + document.location.hostname + ':8084/';
+      cameraPlayer2 = new JSMpeg.Player(url2, { canvas: canvas2 });
+
+      let canvas3 = document.getElementById('video-canvas3');
+      let url3 = 'ws://' + document.location.hostname + ':8086/';
+      cameraPlayer3 = new JSMpeg.Player(url3, { canvas: canvas3 });
+    }, 2000);
   }
   
   UpdateScreenSelectBoxOptions()
@@ -1167,8 +949,6 @@ setInterval(() => {
 
   // console.log(currentCommandStrings);
 
-
- 
 
   //send commmands
   if (isConnected) {
