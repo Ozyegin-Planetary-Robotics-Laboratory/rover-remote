@@ -820,19 +820,18 @@ function SpeedControl(type, value){
 }
 
 function SwitchLocoMotors(direction){
-  let changeDirection = false
   let horizontal = false
   let vertical = false
   
-  if(locoMotorDirection.includes("01,23")) horizontal = true
-  if(locoMotorDirection.includes("02,13")) vertical = true
+  if(locoMotorDirection.includes("h")) horizontal = true
+  if(locoMotorDirection.includes("v")) vertical = true
 
   if(direction == "horizontal") horizontal = !horizontal
   if(direction == "vertical") vertical = !vertical
 
-  if(horizontal && !vertical) locoMotorDirection = "01,23"
-  else if(!horizontal && vertical) locoMotorDirection = "02,13"
-  else if(horizontal && vertical) locoMotorDirection = "01,23,02,13"
+  if(horizontal && !vertical) locoMotorDirection = "h"
+  else if(!horizontal && vertical) locoMotorDirection = "v"
+  else if(horizontal && vertical) locoMotorDirection = "hv"
   else locoMotorDirection = ""
   
   document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"

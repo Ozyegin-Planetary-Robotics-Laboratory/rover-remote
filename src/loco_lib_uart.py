@@ -183,13 +183,26 @@ def sticks_2_velocities(x,
 
 def velocity_control_loco(x, y, mp):
     global motors_speeds
-    l = mp.split(",")
 
     velocities = sticks_2_velocities(x, y)
-    for i in l:
-        if len(i)>=2:
-            velocities[int(i[0])], velocities[int(i[1])] = velocities[int(i[1])], velocities[int(i[0])]
 
+    newVelocities = [0, 0, 0, 0]
+    if "h" in mp:
+        newVelocities[0] = velocities[1]
+        newVelocities[1] = velocities[0]
+        newVelocities[2] = velocities[3]
+        newVelocities[3] = velocities[2]
+    if "v" in mp:
+        newVelocities[0] = -velocities[0]
+        newVelocities[1] = -velocities[1]
+        newVelocities[2] = -velocities[2]
+        newVelocities[3] = -velocities[3]
+    else:
+        newVelocities = velocities
+        
+    velocities = newVelocities
+    
+    print(velocities)
     for i in range(4):
         motor_name = "mv_" + str(i + 1)
         motor_speeds[motor_name] = velocities[i]*((-1)*i%2)
