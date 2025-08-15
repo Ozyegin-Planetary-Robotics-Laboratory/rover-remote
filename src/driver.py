@@ -105,37 +105,37 @@ async def handle_websocket(websocket, path=None):
                         scictl("i")
                     
                     elif command == "DOF1Left":
-                        set_velocity_loop(12, armSpeed/3, 200)
+                        set_velocity_loop(12, armSpeed/3 * value, 200)
                         DOFs[0] = True
                     elif command == "DOF1Right":
-                        set_velocity_loop(12, -armSpeed/3, 200)
+                        set_velocity_loop(12, -armSpeed/3 * value, 200)
                         DOFs[0] = True
                     elif command == "DOF1":
                         set_velocity_loop(12, armSpeed/3 * value, 200)
                         DOFs[0] = True
                     
                     elif command == "DOF2Up":
-                        set_velocity_loop(16, -armSpeed, 200)
+                        set_velocity_loop(16, -armSpeed * value, 200)
                         DOFs[1] = True
                     elif command == "DOF2Down":
-                        set_velocity_loop(16, armSpeed, 200)
+                        set_velocity_loop(16, armSpeed * value, 200)
                         DOFs[1] = True
                     elif command == "DOF2":
                         set_velocity_loop(16, -armSpeed * value, 200)
                         DOFs[1] = True
                     
                     elif command == "DOF3Up":
-                        set_velocity_loop(13, armSpeed, 200)
+                        set_velocity_loop(13, armSpeed * value, 200)
                         DOFs[2] = True
                     elif command == "DOF3Down":
-                        set_velocity_loop(13, -armSpeed, 200)
+                        set_velocity_loop(13, -armSpeed * value, 200)
                         DOFs[2] = True
                     
                     elif command == "DOF4Up":
-                        set_velocity_loop(14, -armSpeed/6, 200)
+                        set_velocity_loop(14, -armSpeed/6 * value, 200)
                         DOFs[3] = True
                     elif command == "DOF4Down":
-                        set_velocity_loop(14, armSpeed/6, 200)
+                        set_velocity_loop(14, armSpeed/6 * value, 200)
                         DOFs[3] = True
                     
                     elif command == "EndEffectorCCW":

@@ -140,12 +140,12 @@ const screens = [
             <div>
               <span>Loco Speed</span>
               <div id="LocoSpeedValue" class="SpeedControlValueDiv">-</div>
-              <input id="LocoSpeedSlider" oninput="SpeedControl('Loco', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
+              <input step="0.1" min="0" max="2" id="LocoSpeedSlider" oninput="SpeedControl('Loco', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
             </div>
             <div style="margin-top: 1rem;">
               <span>Manipulator Speed</span>
               <div id="ManipulatorSpeedValue" class="SpeedControlValueDiv">-</div>
-              <input id="ManipulatorSpeedSlider" oninput="SpeedControl('Manipulator', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
+              <input step="0.1" min="0" max="5" id="ManipulatorSpeedSlider" oninput="SpeedControl('Manipulator', this.value)" style="margin: 1rem 0;" class="SliderClass" type="range">
             </div>
           </div>
         </div>
@@ -311,8 +311,8 @@ const controllerConfigs = [
 let targetLedColor = ""
 let disableLedButtons = false
 
-let locoSpeed = 50
-let manipulatorSpeed = 50
+let locoSpeed = 1
+let manipulatorSpeed = 1
 let locoMotorDirection = ""
 
 // CameraScreen
@@ -414,8 +414,8 @@ function SelectScreen(screenDivId, screenId) {
   if(screenId == "StatusScreen"){
     document.getElementById("LocoSpeedSlider").value = locoSpeed
     document.getElementById("ManipulatorSpeedSlider").value = manipulatorSpeed
-    document.getElementById("LocoSpeedValue").textContent = locoSpeed + "%"
-    document.getElementById("ManipulatorSpeedValue").textContent = manipulatorSpeed + "%"
+    document.getElementById("LocoSpeedValue").textContent = locoSpeed
+    document.getElementById("ManipulatorSpeedValue").textContent = manipulatorSpeed
   }
   else if(screenId == "CameraScreen"){
     setTimeout(() => {
@@ -593,16 +593,33 @@ function LedButtonStateChanger(enabled){
 }
 
 function SpeedControl(type, value){
-  document.getElementById(type + "SpeedValue").textContent = value + "%"
+  document.getElementById(type + "SpeedValue").textContent = value
   if(type == "Loco"){    
-    locoSpeed = parseInt(value)
+    locoSpeed = parseFloat(value)
     document.getElementById("LocoSpeedSlider").value = value
   }
   else if(type == "Manipulator"){
-    manipulatorSpeed = parseInt(value)
+    manipulatorSpeed = parseFloat(value)
     document.getElementById("ManipulatorSpeedSlider").value = value
   }
   
+}
+
+function SpeedControlIncremental(type, increment){
+  if(type == "Loco"){    
+    const locoSpeedSlider = document.getElementById("LocoSpeedSlider")
+    locoSpeed += increment
+    if(locoSpeed > parseFloat(locoSpeedSlider.max)) locoSpeed = parseFloat(locoSpeedSlider.max)
+    if(locoSpeed < 0) locoSpeed = 0
+    SpeedControl("Loco", locoSpeed)
+  }
+  else if(type == "Manipulator"){
+    const manipulatorSpeedSlider = document.getElementById("ManipulatorSpeedSlider")
+    manipulatorSpeed += increment
+    if(manipulatorSpeed > parseFloat(manipulatorSpeedSlider.max)) manipulatorSpeed = parseFloat(manipulatorSpeedSlider.max)
+    if(manipulatorSpeed < 0) manipulatorSpeed = 0
+    SpeedControl("Manipulator", manipulatorSpeed)
+  }
 }
 
 function SwitchLocoMotors(direction){
@@ -917,33 +934,34 @@ setInterval(() => {
   if (currentGamepad != null) {
     // Button Func
     for (let i = 0; i < currentGamepad.buttons.length; i++) {
-      const button = currentGamepad.buttons[i];
+      let button = currentGamepad.buttons[i];
+      let buttonValue = button.value
       if (!button.pressed) continue
       
       const configFunction = GetControllerConfigFunction("button", i)
       if(configFunction == "ManipulatorSpeedIncrease"){
         if(manipulatorSpeed == 100) continue
-        SpeedControl("Manipulator", manipulatorSpeed+10)
+        SpeedControlIncremental("Manipulator", 0.25)
         continue
       }
       else if(configFunction == "ManipulatorSpeedDecrease"){
         if(manipulatorSpeed == 0) continue
-        SpeedControl("Manipulator", manipulatorSpeed-10)
+        SpeedControlIncremental("Manipulator", -0.25)
         continue
       }
 
       if(configFunction.includes("DOF")){
-        axis *= manipulatorSpeed
+        buttonValue *= manipulatorSpeed
       }
       
 
-      const commandString = configFunction + "#" + button.value.toFixed(4)
+      const commandString = configFunction + "#" + buttonValue.toFixed(4)
       currentCommandStrings.push(commandString)
     }
 
     // Axis Func
     for (let i = 0; i < currentGamepad.axes.length; i++) {
-      const axis = currentGamepad.axes[i];
+      let axis = currentGamepad.axes[i];
       if (Math.abs(axis) < controllerDeadzone) continue
       
       const configFunction = GetControllerConfigFunction("axis", i)
