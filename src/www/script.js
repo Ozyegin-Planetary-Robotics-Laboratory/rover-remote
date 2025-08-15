@@ -276,6 +276,8 @@ const controllerConfigs = [
       { button: 14, func: "DOF4Up" },
       { button: 6, func: "EndEffectorCCW" },
       { button: 7, func: "EndEffectorCW" },
+      { button: 8, func: "ManipulatorSpeedDecrease" },
+      { button: 9, func: "ManipulatorSpeedIncrease" },
       { axis: 0, func: "LocoAngular" },
       { axis: 1, func: "LocoLinear" },
       { axis: 2, func: "DOF1" },
@@ -594,9 +596,11 @@ function SpeedControl(type, value){
   document.getElementById(type + "SpeedValue").textContent = value + "%"
   if(type == "Loco"){    
     locoSpeed = parseInt(value)
+    document.getElementById("LocoSpeedSlider").value = value
   }
   else if(type == "Manipulator"){
     manipulatorSpeed = parseInt(value)
+    document.getElementById("ManipulatorSpeedSlider").value = value
   }
   
 }
@@ -917,6 +921,22 @@ setInterval(() => {
       if (!button.pressed) continue
       
       const configFunction = GetControllerConfigFunction("button", i)
+      if(configFunction == "ManipulatorSpeedIncrease"){
+        if(manipulatorSpeed == 100) continue
+        SpeedControl("Manipulator", manipulatorSpeed+10)
+        continue
+      }
+      else if(configFunction == "ManipulatorSpeedDecrease"){
+        if(manipulatorSpeed == 0) continue
+        SpeedControl("Manipulator", manipulatorSpeed-10)
+        continue
+      }
+
+      if(configFunction.includes("DOF")){
+        axis *= manipulatorSpeed
+      }
+      
+
       const commandString = configFunction + "#" + button.value.toFixed(4)
       currentCommandStrings.push(commandString)
     }
@@ -935,6 +955,9 @@ setInterval(() => {
       if(configFunction == "LocoLinear" || configFunction == "LocoAngular"){
         parameter = locoMotorDirection  
         console.log(parameter);
+      }
+      if(configFunction.includes("DOF")){
+        axis *= manipulatorSpeed
       }
 
       const commandString = configFunction + "#" + axis.toFixed(4) + "#" + parameter
