@@ -15,8 +15,8 @@ motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for r
 
 locoMotorInfo = {value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}
 
-color_port="/dev/ttyUSB6"
-science_port="/dev/ttyUSB5"
+color_port="/dev/ttyUSB5"
+science_port="/dev/ttyUSB6"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)

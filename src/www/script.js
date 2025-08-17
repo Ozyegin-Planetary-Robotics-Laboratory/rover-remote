@@ -950,7 +950,7 @@ setInterval(() => {
         continue
       }
 
-      if(configFunction.includes("DOF")){
+      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
         buttonValue *= manipulatorSpeed
       }
       
@@ -974,7 +974,7 @@ setInterval(() => {
         parameter = locoMotorDirection  
         console.log(parameter);
       }
-      if(configFunction.includes("DOF")){
+      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
         axis *= manipulatorSpeed
       }
 
