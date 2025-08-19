@@ -12,7 +12,7 @@ from threading import Timer
 import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, locoMotorInfo
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, get_loco_motor_info, dev_list
 from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
 
 
@@ -100,9 +100,9 @@ async def handle_websocket(websocket, path=None):
                     
                     #Science
                     elif command == "ScienceUp":
-                        scictl("k")
+                        scictl(b"k")
                     elif command == "ScienceDown":
-                        scictl("i")
+                        scictl(b"i")
                     
                     elif command == "DOF1Left":
                         set_velocity_loop(12, armSpeed/3 * value, 200)
@@ -190,11 +190,11 @@ async def handle_websocket(websocket, path=None):
                 can_recive()
 
                 message = {
-                    "loco": locoMotorInfo,
+                    "loco": get_loco_motor_info(),
                     "arm": motor_situations,
                 }
                 await websocket.send(json.dumps({"status": "still_connected", "message": message, "timestamp": timestamp}))
-                
+                print(message)
             except json.JSONDecodeError:
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")
                 await websocket.send(json.dumps({"status": "error", "message": "Invalid JSON format"}))
