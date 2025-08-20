@@ -12,7 +12,7 @@ from threading import Timer
 import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, locoMotorInfo
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, get_loco_motor_info, dev_list
 from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
 
 
@@ -38,7 +38,7 @@ start_bus()
 start_devs()
 
 dynamixelChanged = False
-dynamixelUSB = "/dev/ttyUSB3" # wll choose automatically after
+dynamixelUSB = "/dev/dynamixelUSB" # wll choose automatically after
 
 context = pyudev.Context()
 # deviceFilterStrings = ["HUB", "Hub", "Linux"]
@@ -100,9 +100,9 @@ async def handle_websocket(websocket, path=None):
                     
                     #Science
                     elif command == "ScienceUp":
-                        scictl("k")
+                        scictl(b"k")
                     elif command == "ScienceDown":
-                        scictl("i")
+                        scictl(b"i")
                     
                     elif command == "DOF1Left":
                         set_velocity_loop(12, armSpeed/3 * value, 200)
@@ -139,10 +139,10 @@ async def handle_websocket(websocket, path=None):
                         DOFs[3] = True
                     
                     elif command == "EndEffectorCCW":
-                        await DynamixelControl(int(30 * value), "CW") # Reverse direction due to gear
+                        DynamixelControl(int(30 * value), "CW") # Reverse direction due to gear
                         dynamixel = True
                     elif command == "EndEffectorCW":
-                        await DynamixelControl(int(30 * value), "CCW") # Reverse direction due to gear
+                        DynamixelControl(int(30 * value), "CCW") # Reverse direction due to gear
                         dynamixel = True
                     
                     elif command == "GripperOpen":
@@ -196,19 +196,18 @@ async def handle_websocket(websocket, path=None):
                     dynamixelChanged = True
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
-                    print("aloo")
-                    await DynamixelControl(0, "CW")
+                    DynamixelControl(0, "CW")
 
                 # Timestamp
                 timestamp = int(time.time() * 1000)
                 can_recive()
 
                 message = {
-                    "loco": locoMotorInfo,
+                    "loco": get_loco_motor_info(),
                     "arm": motor_situations,
                 }
                 await websocket.send(json.dumps({"status": "still_connected", "message": message, "timestamp": timestamp}))
-                
+                print(message)
             except json.JSONDecodeError:
                 print(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid JSON received: {message}")
                 await websocket.send(json.dumps({"status": "error", "message": "Invalid JSON format"}))
@@ -227,8 +226,8 @@ async def handle_websocket(websocket, path=None):
 
 
 # speed: int, direction: "CW" or "CCW"
-async def DynamixelControl(speed, direction):
-    dynamixellib.set_dynamixel_speed(1, dynamixelUSB, 57600, speed, direction)
+def DynamixelControl(speed, direction):
+    dynamixellib.set_dynamixel_speed(dynamixelUSB, 57600, speed, direction)
 
 # Graceful shutdown
 async def shutdown():

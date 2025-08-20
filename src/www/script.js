@@ -271,6 +271,8 @@ const controllerConfigs = [
     config: [
       { button: 14, func: "ScienceDown" },
       { button: 12, func: "ScienceUp" },
+      { button: 6, func: "EndEffectorCCW" },
+      { button: 7, func: "EndEffectorCW" },
       { button: 4, func: "GripperOpen" },
       { button: 5, func: "GripperClose" },
       { button: 0, func: "DOF3Down" },
@@ -280,7 +282,7 @@ const controllerConfigs = [
       { axis: 0, func: "LocoAngular" },
       { axis: 1, func: "LocoLinear" },
       { axis: 2, func: "DOF1" },
-      { axis: 5, func: "DOF2" },
+      { axis: 3, func: "DOF2" },
     ]
   },
   // Xbox Uraz
@@ -729,16 +731,14 @@ function connectToBridge() {
       try {
         const response = JSON.parse(event.data);
         // console.log('Message from bridge:', response);
-        
         latestTimestamp = response.timestamp
-
         // Handle different response types
         if (response.status === 'connected') {
           console.log('Connection confirmed by bridge');
           connectionStatus.textContent = 'Connected';
           connectionStatus.classList.add('connected');
         } else if (response.status === 'still_connected') {
-          // console.log(response.message.arm["13"]);
+	  console.log(response.message);
         } else if (response.status === 'sent') {
           // Data was successfully sent to the rover
           connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
@@ -974,7 +974,7 @@ setInterval(() => {
         continue
       }
 
-      if(configFunction.includes("DOF")){
+      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
         buttonValue *= manipulatorSpeed
       }
       
@@ -998,7 +998,7 @@ setInterval(() => {
         parameter = locoMotorDirection  
         console.log(parameter);
       }
-      if(configFunction.includes("DOF")){
+      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
         axis *= manipulatorSpeed
       }
 

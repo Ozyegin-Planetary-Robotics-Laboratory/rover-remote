@@ -13,10 +13,10 @@ motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1",
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
-locoMotorInfo = {value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}
+#locoMotorInfo = [] #{value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}
 
-color_port="/dev/ttyUSB6"
-science_port="/dev/ttyUSB5"
+color_port="/dev/ttyUSB5"
+science_port="/dev/ttyUSB6"
 
 try:
     sciser=serial.Serial(port=science_port, baudrate=115200)
@@ -85,7 +85,7 @@ def start_devs():
         for port in port_list:
             dev = TMotorManager_servo_serial(port=port, baud=962100)
             dev_list.append(dev)
-        sleep(1)
+        sleep(0.2)
         for dev in dev_list:
             dev.__enter__()
             dev.enter_velocity_control()
@@ -98,7 +98,7 @@ def send_velocity_uart(port_list, speed_list):
     speed_list[2]=-1*speed_list[2]
     speed_list[0]=-1*speed_list[0]
     #loop = SoftRealtimeLoop(dt=10, report=True, fade=0.8)
-    for _ in range(10): #for t in loop:
+    for _ in range(1): #for t in loop:
         for i, dev in enumerate(dev_list):
             # print(i, dev)
             dev.set_output_velocity_radians_per_second(speed_list[i])
@@ -207,6 +207,11 @@ def velocity_control_loco(x, y, mp):
         motor_speeds[motor_name] = velocities[i]*((-1)*i%2)
     send_velocity_uart(port_list, velocities)
 
+def get_loco_motor_info():
+    locoMotorInfo=[]
+    for i in dev_list:
+        locoMotorInfo.append(str(i))
+    return locoMotorInfo
 
 
 if __name__ == "__main__":
@@ -214,7 +219,8 @@ if __name__ == "__main__":
     #start_uart_com()
     #read_motors_dictionary()
     start_devs()
-    for _ in range(1800):
-        velocity_control_loco(0.0,0.3, "")
+    for _ in range(180):
+        velocity_control_loco(0.0,0.2, "")
+    print(get_loco_motor_info())
     #change_color(b'g')
     stop_uart_com()

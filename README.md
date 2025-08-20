@@ -15,9 +15,13 @@ This repository contains files that control the CubeMars AK70 motor and use a vi
 - Retrieves controller data  
 - Sends commands to the motors
 
-### `loco_lib.py`
-- Converts joystick inputs to velocity commands  
+### `arm_lib_can.py`
+- Functions that convert inputs to velocity commands  
 - Sends CAN messages to motors
+  
+### `loco_lib_uart.py`
+- Converts joystick inputs to velocity commands  
+- Sends UART messages to motors
 
 ### `rover-remote.sh`
 - Starts necessary Python scripts
