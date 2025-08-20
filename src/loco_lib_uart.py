@@ -3,7 +3,7 @@ import json
 import os
 import math
 from time import sleep
-from TMotorCANControl.servo_serial import *
+from servo_serial import *
 #from NeuroLocoMiddleware.SoftRealtimeLoop import SoftRealtimeLoop
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     #read_motors_dictionary()
     start_devs()
     for _ in range(180):
-        velocity_control_loco(0.0,0.2, "")
+        velocity_control_loco(0.0,-0.2, "")
     print(get_loco_motor_info())
     #change_color(b'g')
     stop_uart_com()
