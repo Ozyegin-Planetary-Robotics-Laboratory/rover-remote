@@ -176,6 +176,22 @@ const screens = [
     </div>
     `
   },
+  {
+    id: "PanTiltScreen",
+    html: `
+    <div id="PanTiltScreen">
+      <div class="PanTiltContainer">
+        <div id="RoverImgPanTilt">
+          <img id="PanTiltUp" class="PanTiltCameraClass" src="icons/Camera.png"></img>
+        </div>
+      </div>
+      <div id="PantiltSideDiv" class="PanTiltContainer">
+        <img id="Side" class="PanTiltCameraClass" src="icons/Camera.png"></img>
+        <img id="RoverSideImg" src="icons/RoverSide.png"></img>
+      </div>
+    </div>
+    `
+  }
 ]
 
 let screenSelectBoxString = ""
@@ -212,7 +228,7 @@ const controllerDOF1Deadzone = 0.25
 
 let controllerId = ""
 let buttonFunctionsString = ""
-const buttonFunctions = [
+const commandFunctions = [
   // Loco
   { id: "LocoAngular", type: "Axis" },
   { id: "LocoLinear", type: "Axis" },
@@ -241,6 +257,11 @@ const buttonFunctions = [
 
   { id: "GripperOpen", type: "Button" },
   { id: "GripperClose", type: "Button" },
+
+  { id: "PanTiltDown", type: "Button" },
+  { id: "PanTiltUp", type: "Button" },
+  { id: "PanTiltLeft", type: "Button" },
+  { id: "PanTiltRight", type: "Button" },
 ]
 
 const controllerConfigs = [
@@ -266,8 +287,10 @@ const controllerConfigs = [
   {
     ids: ["Xbox 360 Controller (XInput STANDARD GAMEPAD)", "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", "Microsoft Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b12)"],
     config: [
-      { button: 0, func: "ScienceDown" },
-      { button: 3, func: "ScienceUp" },
+      { button: 0, func: "PanTiltDown" },
+      { button: 3, func: "PanTiltUp" },
+      { button: 2, func: "PanTiltLeft" },
+      { button: 1, func: "PanTiltRight" },
       { button: 4, func: "GripperOpen" },
       { button: 5, func: "GripperClose" },
       { button: 13, func: "DOF3Down" },
@@ -330,8 +353,9 @@ AddWindow()
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
-SelectScreen("screenDiv1", "StatusScreen")
+// SelectScreen("screenDiv1", "StatusScreen")
 // SelectScreen("screenDiv1", "CameraScreen")
+SelectScreen("screenDiv1", "PanTiltScreen")
 
 //#region FUNCTIONS
 
@@ -510,8 +534,8 @@ CreateButtonFunctionsString()
 
 function CreateButtonFunctionsString() {
   buttonFunctionsString += '<option value="none">none</option>\n'
-  for (let i = 0; i < buttonFunctions.length; i++) {
-    const func = buttonFunctions[i];
+  for (let i = 0; i < commandFunctions.length; i++) {
+    const func = commandFunctions[i];
     buttonFunctionsString += `
     <option value="${func.id}">${func.id}</option>\n
     `

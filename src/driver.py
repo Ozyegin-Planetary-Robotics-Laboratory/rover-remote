@@ -150,6 +150,19 @@ async def handle_websocket(websocket, path=None):
                     elif command == "GripperClose":
                         scictl(b'l\n')
 
+                    elif command == "PanTiltUp":
+                        # (b'UP\n')
+                        pass
+                    elif command == "PanTiltDown":
+                        # (b'DOWN\n')
+                        pass
+                    elif command == "PanTiltLeft":
+                        # (b'LEFT\n')
+                        pass
+                    elif command == "PanTiltRight":
+                        # (b'RIGHT\n')
+                        pass
+
                     elif command == "Led":
                         change_color(b'x')
                         timer1 = None

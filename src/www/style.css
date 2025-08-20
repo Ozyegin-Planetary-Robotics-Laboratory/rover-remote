@@ -473,12 +473,19 @@ h1 {
 /* #endregion */
 
 /* #region Status Screen */
+#RoverStatusDiv{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
 .RoverStatusSectionClass{
-  margin-top: 1rem;
   background-color: var(--color1);
   border-radius: 0.4rem;
   padding: 1rem;
+  margin: 0.5rem;
   max-width: 24rem;
+  width: 100%;
 }
 .LedButtonClass{
   height: 2rem;
@@ -496,6 +503,7 @@ h1 {
 .LedButtonDeactivatedClass{
   cursor: not-allowed;
 }
+
 #ConnectionDiv{
   position: absolute;
   width: 6rem;
@@ -511,7 +519,6 @@ h1 {
   justify-content: center;
   height: 12rem;
   width: 24rem;
-  margin-top: 1rem;
 }
 #RoverStatusImg{
   height: 12rem;
@@ -532,7 +539,6 @@ h1 {
   transform: scale(1.1);
 }
 #ConnectionStatusDiv{
-  margin-top: 2rem;
   background-color: var(--color1);
   border-radius: 0.4rem;
   padding: 1rem;
@@ -615,6 +621,47 @@ h1 {
 }
 .CameraControlsDiv {
   margin-top: 5px;
+}
+/* #endregion */
+
+/* #region Pan Tilt Screen */
+#PanTiltScreen{
+  max-width: 16rem;
+  height: 80vh;
+}
+.PanTiltContainer{
+  background-color: var(--color1);
+  padding: 1rem;
+  border-radius: 0.4rem;
+  margin-top: 1rem;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+}
+.PanTiltCameraClass{
+  height: 6rem;
+  aspect-ratio: 1;
+}
+#PantiltSideDiv{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+#RoverImgPanTilt{
+  height: 12rem;
+  aspect-ratio: 1;
+  position: relative;
+  background-image: url('./icons/RoverStatus.png');
+  background-size: contain;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#RoverSideImg{
+  height: 6rem;
 }
 /* #endregion */
 
