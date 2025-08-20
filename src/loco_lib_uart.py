@@ -8,8 +8,13 @@ from servo_serial import *
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-motors_dictionary = {"mv_1": "/dev/ttyUSB2", "mv_2": "/dev/ttyUSB1", 
-		     "mv_3": "/dev/ttyUSB0", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB3",
+                     "mv_3": "/dev/ttyUSB2", "mv_4": "/dev/ttyUSB0"}  # Put serial ports. None means no port
+
+#motors_dictionary = {"mv_1":motors_dictionary["mv_1"], "mv_2": motors_dictionary["mv_2"],
+#		             "mv_3": motors_dictionary["mv_3"], "mv_4": motors_dictionary["mv_4"]}
+
+im = {v:k for k, v in motors_dictionary.items()}
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
 
@@ -30,7 +35,7 @@ except:
 
 try:
     if color_port!="NONE":
-        color_serial = serial.Serial(port=color_port, baudrate=9600)
+        color_serial = serial.Serial(port=color_port, baudrate=115200)
         color=True
         port=color_port,
 
@@ -66,15 +71,15 @@ dev_list = []
 
 def read_motors_dictionary():
     global motors_dictionary
-  
+
     try:
         with open(f'/home/{os.getlogin()}/.motor_dict.json', 'r') as f:
             motors_dictionary = json.load(f)
             print(f"Motor dictionary loaded: {motors_dictionary}")
-  
+
     except FileNotFoundError:
         print("Motor dictionary file not found. Using default values.")
-  
+
     except json.JSONDecodeError:
         print("Error decoding JSON from motor dictionary file. Using default values.")
 
@@ -85,14 +90,14 @@ def start_devs():
         for port in port_list:
             dev = TMotorManager_servo_serial(port=port, baud=962100)
             dev_list.append(dev)
-        sleep(0.2)
+        sleep(0.6)
         for dev in dev_list:
             dev.__enter__()
             dev.enter_velocity_control()
             dev.set_zero_position()
             dev.update()
         initial_run = False
-        
+
 def send_velocity_uart(port_list, speed_list):
     global motors_dictionary, motor_speeds, motors_directions, baudrate, stop_event, rpm_constant, update_frequency, initial_run, dev_list
     speed_list[2]=-1*speed_list[2]
@@ -199,7 +204,7 @@ def velocity_control_loco(x, y, mp):
         newVelocities[3] = -velocities[3]
     else:
         newVelocities = velocities
-        
+
     velocities = newVelocities
 
     for i in range(4):
