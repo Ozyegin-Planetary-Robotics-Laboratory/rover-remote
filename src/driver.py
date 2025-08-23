@@ -12,9 +12,11 @@ from threading import Timer
 import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, scictl, get_loco_motor_info, dev_list, im
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, get_loco_motor_info, dev_list, im
 from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
 
+def scictl(c):
+    return c
 
 #try:
 #    from RGBGPIO2 import *
@@ -22,13 +24,9 @@ from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_bra
 #    pass
 
 # Configuration
-#UDP_IP = "192.168.1.3"  # Rover's IP address
-#UDP_PORT = 12344        # Rover's UDP port
 WS_PORT = 8765          # WebSocket server port
 LSU_PORT = os.getenv("LSU_PORT", "/dev/ttyACM0")
 
-# Create UDP socket
-#udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Track active connections
 active_connections = set()
@@ -38,30 +36,43 @@ armSpeed = 10
 # Limit switch
 latestArmCrash = 0
 limitSwitchIgnoreInterval = 20
+bus= 0
+#start_bus()
 
-start_bus()
-start_devs()
-lsu_ser=serial.Serial(LSU_PORT, 115200, timeout=0.1)
+
+
+if bus:
+    armAvaliable=True
+else:
+    armAvaliable=False
+#start_devs()
+try:
+    lsu_ser=serial.Serial(LSU_PORT, 115200, timeout=0.1)
+    limitswitch=True
+except:
+    limitswitch=False
 
 dynamixelChanged = False
-dynamixelUSB = "/dev/ttyUSB4" # wll choose automatically after
+dynamixelUSB = "/dev/ttyUSB0" # wll choose automatically after
+
+
 
 context = pyudev.Context()
 # deviceFilterStrings = ["HUB", "Hub", "Linux"]
 
 for device in context.list_devices(subsystem='tty'):
     path = device.get('ID_PATH')
-    serial = device.get('ID_SERIAL')
-    if path and serial:
+    serialId = device.get('ID_SERIAL')
+    if path and serialId:
         # dynamixel
-        if "AD01UZ2Y" in serial:
+        if "AD01UZ2Y" in serialId:
             dynamixelUSB = device.device_node
             print("dynamixel: " + device.device_node)
         # nano
-        elif "1a86_USB_Serial" in serial:
+        elif "1a86_USB_Serial" in serialId:
             print("nano: " + device.device_node)
 
-        # print(f"{device.device_node} - {serial} - {path}")
+        print(f"{device.device_node} - {serial} - {path}")
 
 
 # Handle WebSocket connections - updated to make path parameter optional
@@ -74,8 +85,8 @@ async def handle_websocket(websocket, path=None):
 
     try:
         await websocket.send(json.dumps({"status": "connected", "message": "Connected to bridge"}))
-        change_color(b'x')
-        change_color(b'g')
+        change_color(b'x\n')
+        change_color('green')
         async for message in websocket:
             #print(message)
             try:
@@ -145,10 +156,10 @@ async def handle_websocket(websocket, path=None):
                         DOFs[3] = True
 
                     elif command == "EndEffectorCCW":
-                        dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,int(30 * value),"CW")
+                        dynamixellib.set_speed(int(30 * value))
                         dynamixel = True
                     elif command == "EndEffectorCW":
-                        dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,int(30 * value),"CW")
+                        dynamixellib.set_speed(int(30 * value))
                         dynamixel = True
 
                     elif command == "GripperOpen":
@@ -170,9 +181,10 @@ async def handle_websocket(websocket, path=None):
                         pass
 
                     elif command == "Led":
-                        change_color(b'x')
+                        change_color(b'x\n')
                         timer1 = None
                         timer2 = None
+                        print("LED KOMUTU BU:", command, value)
                         # change_color(["red","blue","green"][int(value)%3])
                         if value == 1: timer1 = Timer(0.5, change_color, ["red"])
                         elif value == 2: timer1 = Timer(0.5, change_color, ["green"])
@@ -187,13 +199,13 @@ async def handle_websocket(websocket, path=None):
                 velocity_control_loco(locoAngular/4, locoLinear/2, mp)
 
                 # Hold dof position if no command
-                if not DOFs[0]:
+                if not DOFs[0] and armAvaliable:
                     set_velocity_loop(12, 0, 200)
-                if not DOFs[1]:
+                if not DOFs[1] and armAvaliable:
                     set_velocity_loop(16, 0, 200)
-                if not DOFs[2]:
+                if not DOFs[2] and armAvaliable:
                     set_velocity_loop(13, 0, 200)
-                if not DOFs[3]:
+                if not DOFs[3] and armAvaliable:
                     set_velocity_loop(14, 0, 200)
 
                 # Stop dynamixel if no command
@@ -205,13 +217,18 @@ async def handle_websocket(websocket, path=None):
 
                 # Timestamp
                 timestamp = int(time.time() * 1000)
-                can_recive()
+                if armAvaliable:
+                    can_recive()
 
+                if limitswitch:
+                    limiswitchres = CheckLimitSwitch()
+                else:
+                    limiswitchres = "No limit switch detected"
                 parsedLocoMotorInfo = ParseLocoMotorInfo(get_loco_motor_info())
                 message = {
                     "loco": parsedLocoMotorInfo,
                     "arm": motor_situations,
-                    "crash": CheckLimitSwitch()
+                    "crash": limiswitchres
                 }
                 await websocket.send(json.dumps({"status": "still_connected", "message": message, "timestamp": timestamp}))
                 # print(message)

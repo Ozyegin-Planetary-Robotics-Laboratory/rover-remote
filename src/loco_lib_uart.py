@@ -1,15 +1,18 @@
-import threading
-import json
 import os
+import glob
+import json
 import math
+import pyudev
+import serial
+import threading
 from time import sleep
 from servo_serial import *
 #from NeuroLocoMiddleware.SoftRealtimeLoop import SoftRealtimeLoop
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB3",
-                     "mv_3": "/dev/ttyUSB2", "mv_4": "/dev/ttyUSB0"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB2",
+                     "mv_3": "/dev/ttyUSB3", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
 
 #motors_dictionary = {"mv_1":motors_dictionary["mv_1"], "mv_2": motors_dictionary["mv_2"],
 #		             "mv_3": motors_dictionary["mv_3"], "mv_4": motors_dictionary["mv_4"]}
@@ -17,41 +20,80 @@ motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB3",
 im = {v:k for k, v in motors_dictionary.items()}
 #motors_dictionary = json.load(open("/home/kaine/.motor_dict.json","r"))
 motors_directions = {"mv_1": 1, "mv_2": 1, "mv_3": 1, "mv_4": 1}  # Put -1 for reverse
-
+debug=1
 #locoMotorInfo = [] #{value: [0, 0, 0, 0, 0, 0, 0, 0] for key,value in motors_dictionary.items()}
+def identify_arduinos():
+    color_port = None
+    science_dc_port = None
+    science_sensor_port = None
 
-color_port="/dev/ttyUSB5"
-science_port="/dev/ttyUSB6"
+    context = pyudev.Context()
+    ports = []
 
-try:
-    sciser=serial.Serial(port=science_port, baudrate=115200)
-    def scictl(r):
-        sciser.write(r)
-    science=True
-except:
-    def scictl(r):
-        return False
-    science=False
+    # collect only CH340 tty devices
+    for device in context.list_devices(subsystem="tty"):
+        vid = device.get("ID_VENDOR_ID")
+        pid = device.get("ID_MODEL_ID")
+        if vid == "1a86" and pid == "7523":  # CH340
+            ports.append(device.device_node)
 
-try:
-    if color_port!="NONE":
-        color_serial = serial.Serial(port=color_port, baudrate=115200)
-        color=True
-        port=color_port,
+    for port in ports:
+        try:
+            with serial.Serial(port, 115200, timeout=2) as ser:
+                time.sleep(2)  # give Arduino time to reset
 
+                # Send handshake
+                ser.write(b"\n")
+                ser.flush()
+
+                # Read response
+                response = ser.readline().decode(errors="ignore").strip()
+                print(f"[{port}] → '{response}'")
+
+                if "ARCIBI" in response.upper():
+                    color_port = port
+                elif "SAYINSDISI" in response.upper():
+                    science_dc_port = port
+                elif "SAYINSSENSOR" in response.upper():
+                    science_sensor_port = port
+
+        except Exception as e:
+            print(f"Could not open {port}: {e}")
+
+    return {
+        "color": color_port,
+        "science_dc": science_dc_port,
+        "science_sensor": science_sensor_port
+    }
+
+idardres = identify_arduinos()
+print(idardres)
+
+color_port=idardres["color"]
+science_dc_port=idardres["science_dc"]
+science_sensor_port=idardres["science_sensor"]
+if color_port:
+    color_serial = serial.Serial(port=color_port, baudrate=115200)
+    print("")
     def change_color(c):
         if c == "red":
-            color_serial.write(b'r')
+            color_serial.write(b'r\n')
         elif c == "green":
-            color_serial.write(b'g')
+            color_serial.write(b'g\n')
         elif c == "blue":
-            color_serial.write(b'b')
+            color_serial.write(b'b\n')
         else:
             color_serial.write(c)
-except:
-    def change_color(c):
-        return False
-    color=False
+else:
+    def change_color(*args):
+        print("No color arduino detected")
+
+if science_dc_port:
+    science_dc_serial = serial.Serial(port=color_port, baudrate=115200)
+
+
+if science_sensor_port:
+    science_sensor_serial = serial.Serial(port=color_port, baudrate=115200)
 
 #del motors_dictionary["color"]
 port_list = list(motors_dictionary.values())
@@ -223,9 +265,10 @@ if __name__ == "__main__":
 
     #start_uart_com()
     #read_motors_dictionary()
-    start_devs()
-    for _ in range(180):
-        velocity_control_loco(0.0,-0.2, "")
-    print(get_loco_motor_info())
-    #change_color(b'g')
-    stop_uart_com()
+    if not debug:
+        start_devs()
+        for _ in range(180):
+            velocity_control_loco(0.0,-0.2, "")
+        print(get_loco_motor_info())
+        #change_color(b'g')
+        stop_uart_com()
