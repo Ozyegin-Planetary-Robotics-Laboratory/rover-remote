@@ -799,6 +799,15 @@ function connectToBridge() {
                         //alert("EYVAH!")
                         console.log("eyvah!");
                     }
+
+                    const scienceData = response.message.science
+                    if(scienceScreenOn && scienceData){
+                        document.getElementById("LoadCell1").textContent = scienceData.loadCell1
+                        document.getElementById("LoadCell2").textContent = scienceData.loadCell2
+                        document.getElementById("AirHumidity").textContent = scienceData.airHumidity
+                        document.getElementById("AirTemperature").textContent = scienceData.airTemperature
+                        document.getElementById("SoilHumidity").textContent = scienceData.soilHumidity
+                    }
                 } else if (response.status === "sent") {
                     // Data was successfully sent to the rover
                     connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
