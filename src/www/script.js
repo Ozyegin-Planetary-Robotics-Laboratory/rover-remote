@@ -1,7 +1,8 @@
 // Windows
 const screens = [
-  { id: "Blank",
-    html: `
+    {
+        id: "Blank",
+        html: `
       <div class="BlankScreenClass">
         <span class="SelectScreenSpanClass">Select a screen</span
       </div>
@@ -72,13 +73,14 @@ const screens = [
         </div>
       <button onclick="downloadAllCanvases()">Download All Frames</button>
     </div>
-    `
-  },
-  { id: "ControllerScreen",
-    html: `
+    `,
+    },
+    {
+        id: "ControllerScreen",
+        html: `
     <div id="ControllerScreen">
      <div onclick="PrintControllerId()" id="PlayerNumber"></div>
-     
+
      <div id=ControllerScreenButtons></div>
     </div>
     `
@@ -95,19 +97,19 @@ const screens = [
             </div>
             <button id="SwitchLocoHorizontal" onclick="SwitchLocoMotors('horizontal')" class="ButtonClass SwitchButtonClass"><img class="SwitchIconClass" src="icons/SwitchArrows.png"></button>
             <div class="LocoStatusDivClass">
-              <span id="LocoStatusTemp2" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
-              <span id="LocoStatusSpeed2" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+              <span id="LocoStatusTemp3" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed3" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
           </div>
-          
+
           <div id="RoverStatusImg">
             <img id="EmergencyButton" style="width: 5rem;" src="icons/EmergencyButton.png"></img>
           </div>
-          
+
           <div class="LocoStatusSideClass" style="margin-left: 1rem;">
             <div style="justify-content: start;" class="LocoStatusDivClass">
-              <span id="LocoStatusTemp3" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
-              <span id="LocoStatusSpeed3" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
+              <span id="LocoStatusTemp2" class="LocoStatusSpanClass LocoStatusTempratureSpanClass"></span>
+              <span id="LocoStatusSpeed2" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
             <button id="SwitchLocoVertical" onclick="SwitchLocoMotors('vertical')" class="ButtonClass SwitchButtonClass"><img style="transform: rotate(90deg);" class="SwitchIconClass" src="icons/SwitchArrows.png"></button>
             <div style="justify-content: end;" class="LocoStatusDivClass">
@@ -115,7 +117,7 @@ const screens = [
               <span id="LocoStatusSpeed4" class="LocoStatusSpanClass LocoStatusSpeedSpanClass"></span>
             </div>
           </div>
-          
+
         </div>
         <div class="RoverStatusSectionClass" id="ConnectionStatusDiv">
           <span style="margin-bottom: 1rem;">Connection</span>
@@ -151,10 +153,11 @@ const screens = [
         </div>
       </div>
     </div>
-    `
-  },
-  { id: "ManipulatorScreen",
-    html: `
+    `,
+    },
+    {
+        id: "ManipulatorScreen",
+        html: `
     <div id="ManipulatorScreen">
       <div id="ManipulatorContainer">
         <div style="margin-top: 400px" id="ManipulatorDOF1" class="ManipulatorDOFClass">
@@ -207,151 +210,163 @@ const screens = [
   }
 ]
 
-let screenSelectBoxString = ""
-CreateScreenSelectBoxString()
-
+let screenSelectBoxString = "";
+CreateScreenSelectBoxString();
 
 let windowId = 0;
 const windowSizeIncrement = 10;
-let currentWindows = []
+let currentWindows = [];
 
 const colorConfigs = [
-  {
-    type: "latency",
-    tresholds: [250, 1000]
-  },
-  {
-    type: "temperature",
-    tresholds: [35, 60]
-  },
-  {
-    type: "speed",
-    tresholds: [30, 70]
-  },
-
-]
+    {
+        type: "latency",
+        tresholds: [250, 1000],
+    },
+    {
+        type: "temperature",
+        tresholds: [45, 60],
+    },
+    {
+        type: "speed",
+        tresholds: [30, 70],
+    },
+];
 
 let isResizingWindow = false;
 let cursorStartX, windowStartWidth, currentResizingWindowId;
 
 // Controller
 let controllerScreenOldState = false;
-const controllerDeadzone = 0.1
-const controllerDOF1Deadzone = 0.25
+const controllerDeadzone = 0.1;
+const controllerDOF1Deadzone = 0.25;
 
-let controllerId = ""
-let buttonFunctionsString = ""
+let controllerId = "";
+let buttonFunctionsString = "";
 const commandFunctions = [
-  // Loco
-  { id: "LocoAngular", type: "Axis" },
-  { id: "LocoLinear", type: "Axis" },
+    // Loco
+    { id: "LocoAngular", type: "Axis" },
+    { id: "LocoLinear", type: "Axis" },
 
-  // Science
-  { id: "ScienceDown", type: "Button" },
-  { id: "ScienceUp", type: "Button" },
+    // Science
+    { id: "ScienceDown", type: "Button" },
+    { id: "ScienceUp", type: "Button" },
 
-  // Arm
-  { id: "DOF1Left", type: "Button" },
-  { id: "DOF1Right", type: "Button" },
-  { id: "DOF1", type: "Axis" },
+    // Arm
+    { id: "DOF1Left", type: "Button" },
+    { id: "DOF1Right", type: "Button" },
+    { id: "DOF1", type: "Axis" },
 
-  { id: "DOF2Down", type: "Button" },
-  { id: "DOF2Up", type: "Button" },
-  { id: "DOF2", type: "Axis" },
+    { id: "DOF2Down", type: "Button" },
+    { id: "DOF2Up", type: "Button" },
+    { id: "DOF2", type: "Axis" },
 
-  { id: "DOF3Down", type: "Button" },
-  { id: "DOF3Up", type: "Button" },
+    { id: "DOF3Down", type: "Button" },
+    { id: "DOF3Up", type: "Button" },
 
-  { id: "DOF4Down", type: "Button" },
-  { id: "DOF4Up", type: "Button" },
+    { id: "DOF4Down", type: "Button" },
+    { id: "DOF4Up", type: "Button" },
 
-  { id: "EndEffectorCCW", type: "Button" },
-  { id: "EndEffectorCW", type: "Button" },
+    { id: "EndEffectorCCW", type: "Button" },
+    { id: "EndEffectorCW", type: "Button" },
 
-  { id: "GripperOpen", type: "Button" },
-  { id: "GripperClose", type: "Button" },
+    { id: "GripperOpen", type: "Button" },
+    { id: "GripperClose", type: "Button" },
 
-  { id: "PanTiltDown", type: "Button" },
-  { id: "PanTiltUp", type: "Button" },
-  { id: "PanTiltLeft", type: "Button" },
-  { id: "PanTiltRight", type: "Button" },
-]
+    { id: "PanTiltDown", type: "Button" },
+    { id: "PanTiltUp", type: "Button" },
+    { id: "PanTiltLeft", type: "Button" },
+    { id: "PanTiltRight", type: "Button" },
+];
 
 const controllerConfigs = [
-  // PS2 Oğuzhan
-  {
-    ids: ["PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)", "My-Power CO.,LTD. PS(R) Controller Adaptor (STANDARD GAMEPAD Vendor: 054c Product: 0268)"],
-    config: [
-      { button: 14, func: "ScienceDown" },
-      { button: 12, func: "ScienceUp" },
-      { button: 6, func: "EndEffectorCCW" },
-      { button: 7, func: "EndEffectorCW" },
-      { button: 4, func: "GripperOpen" },
-      { button: 5, func: "GripperClose" },
-      { button: 0, func: "DOF3Down" },
-      { button: 2, func: "DOF3Up" },
-      { button: 3, func: "DOF4Down" },
-      { button: 1, func: "DOF4Up" },
-      { axis: 0, func: "LocoAngular" },
-      { axis: 1, func: "LocoLinear" },
-      { axis: 2, func: "DOF1" },
-      { axis: 3, func: "DOF2" },
-    ]
-  },
-  // Xbox Uraz
-  {
-    ids: ["Xbox 360 Controller (XInput STANDARD GAMEPAD)", "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)", "Microsoft Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b12)"],
-    config: [
-      { button: 0, func: "PanTiltDown" },
-      { button: 3, func: "PanTiltUp" },
-      { button: 2, func: "PanTiltLeft" },
-      { button: 1, func: "PanTiltRight" },
-      { button: 4, func: "GripperOpen" },
-      { button: 5, func: "GripperClose" },
-      { button: 13, func: "DOF3Down" },
-      { button: 12, func: "DOF3Up" },
-      { button: 15, func: "DOF4Down" },
-      { button: 14, func: "DOF4Up" },
-      { button: 6, func: "EndEffectorCCW" },
-      { button: 7, func: "EndEffectorCW" },
-      { button: 8, func: "ManipulatorSpeedDecrease" },
-      { button: 9, func: "ManipulatorSpeedIncrease" },
-      { axis: 0, func: "LocoAngular" },
-      { axis: 1, func: "LocoLinear" },
-      { axis: 2, func: "DOF1" },
-      { axis: 3, func: "DOF2" },
-    ]
-  },
-  // 8bitdo Emre
-  {
-    ids: ["Windows için Xbox 360 Denetleyicisi (STANDARD GAMEPAD)"],
-    config: [
-      { button: 0, func: "ScienceDown" },
-      { button: 3, func: "ScienceUp" },
-      { button: 4, func: "GripperOpen" },
-      { button: 5, func: "GripperClose" },
-      { button: 13, func: "DOF3Down" },
-      { button: 12, func: "DOF3Up" },
-      { button: 15, func: "DOF4Down" },
-      { button: 14, func: "DOF4Up" },
-      { button: 6, func: "EndEffectorCCW" },
-      { button: 7, func: "EndEffectorCW" },
-      { axis: 0, func: "LocoAngular" },
-      { axis: 1, func: "LocoLinear" },
-      { axis: 2, func: "DOF1" },
-      { axis: 3, func: "DOF2" },
-    ]
-  },
-
-]
+    // PS2 Oğuzhan
+    {
+        ids: [
+            "PS(R) Controller Adaptor (Vendor: 0e8f Product: 0003)",
+            "My-Power CO.,LTD. PS(R) Controller Adaptor (STANDARD GAMEPAD Vendor: 054c Product: 0268)",
+        ],
+        config: [
+            { button: 14, func: "ScienceDown" },
+            { button: 12, func: "ScienceUp" },
+            { button: 6, func: "EndEffectorCCW" },
+            { button: 7, func: "EndEffectorCW" },
+            { button: 4, func: "GripperOpen" },
+            { button: 5, func: "GripperClose" },
+            { button: 0, func: "DOF3Down" },
+            { button: 2, func: "DOF3Up" },
+            { button: 3, func: "DOF4Down" },
+            { button: 1, func: "DOF4Up" },
+            { axis: 0, func: "LocoAngular" },
+            { axis: 1, func: "LocoLinear" },
+            { axis: 2, func: "DOF1" },
+            { axis: 3, func: "DOF2" },
+        ],
+    },
+    // Xbox Uraz
+    {
+        ids: [
+            "Xbox 360 Controller (XInput STANDARD GAMEPAD)",
+            "HID uyumlu oyun denetleyicisi (STANDARD GAMEPAD Vendor: 045e Product: 0b13)",
+            "Microsoft Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b12)",
+        ],
+        config: [
+            { button: 0, func: "PanTiltDown" },
+            { button: 3, func: "PanTiltUp" },
+            { button: 2, func: "PanTiltLeft" },
+            { button: 1, func: "PanTiltRight" },
+            { button: 4, func: "GripperOpen" },
+            { button: 5, func: "GripperClose" },
+            { button: 13, func: "DOF3Down" },
+            { button: 12, func: "DOF3Up" },
+            { button: 15, func: "DOF4Down" },
+            { button: 14, func: "DOF4Up" },
+            { button: 6, func: "EndEffectorCCW" },
+            { button: 7, func: "EndEffectorCW" },
+            { button: 8, func: "ManipulatorSpeedDecrease" },
+            { button: 9, func: "ManipulatorSpeedIncrease" },
+            { axis: 0, func: "LocoAngular" },
+            { axis: 1, func: "LocoLinear" },
+            { axis: 2, func: "DOF1" },
+            { axis: 3, func: "DOF2" },
+        ],
+    },
+    // 8bitdo Emre
+    {
+        ids: [
+            "Windows için Xbox 360 Denetleyicisi (STANDARD GAMEPAD)",
+            "8BitDo 8BitDo Ultimate 2C Wireless Controller (Vendor: 2dc8 Product: 310a)",
+        ],
+        config: [
+            { button: 0, func: "ScienceDown" },
+            { button: 3, func: "ScienceUp" },
+            { button: 4, func: "GripperOpen" },
+            { button: 5, func: "GripperClose" },
+            { button: 13, func: "DOF3Down" },
+            { button: 12, func: "DOF3Up" },
+            { button: 15, func: "DOF4Down" },
+            { button: 14, func: "DOF4Up" },
+            { button: 6, func: "EndEffectorCCW" },
+            { button: 7, func: "EndEffectorCW" },
+            { axis: 0, func: "LocoAngular" },
+            { axis: 1, func: "LocoLinear" },
+            { axis: 2, func: "DOF1" },
+            { axis: 3, func: "DOF2" },
+        ],
+    },
+];
 
 // StatusScreen
-let targetLedColor = ""
-let disableLedButtons = false
+let targetLedColor = "";
+let disableLedButtons = false;
 
-let locoSpeed = 1
-let manipulatorSpeed = 1
-let locoMotorDirection = ""
+let locoSpeed = 1;
+let manipulatorSpeed = 1;
+let locoMotorDirection = "";
+
+let motorStatusData = {
+    loco: [],
+    arm: [],
+};
 
 // CameraScreen
 var cameraPlayer1, cameraPlayer2, cameraPlayer3
@@ -360,14 +375,14 @@ var cameraPlayer1, cameraPlayer2, cameraPlayer3
 let scienceScreenOn = false
 
 // Connection
-const connectionStatus = document.getElementById('ConnectionStatus');
-const ipAdress = document.location.host.split(':')[0]
-const port = 8765
-let isConnected = false
-const latencySpan = document.getElementById("LatencySpan")
-let latestTimestamp = 0
+const connectionStatus = document.getElementById("ConnectionStatus");
+const ipAdress = document.location.host.split(":")[0];
+const port = 8765;
+let isConnected = false;
+const latencySpan = document.getElementById("LatencySpan");
+let latestTimestamp = 0;
 
-AddWindow()
+AddWindow();
 // SelectScreen("screenDiv1", "MobileScreen")
 // SelectScreen("screenDiv1", "ControllerScreen")
 // SelectScreen("screenDiv1", "ManipulatorScreen")
@@ -380,8 +395,8 @@ SelectScreen("screenDiv1", "ScienceScreen")
 
 // #region Windows and Screens
 function AddWindow() {
-  windowId++
-  document.getElementById("WindowsDiv").innerHTML += `
+    windowId++;
+    document.getElementById("WindowsDiv").innerHTML += `
     <div style="width: 100%" id="window${windowId}" class="WindowClass">
       <div class="WindowTopClass">
         <select id="WindowSelectBox${windowId}" onchange="SelectScreen('screenDiv${windowId}', this.value)" name="" class="SelectBoxClass WindowSelectBox">
@@ -396,79 +411,81 @@ function AddWindow() {
       <div id="screenDiv${windowId}"></div>
     </div>
     <div onmousedown="WindowResizeBarMouseDown(event, 'window${windowId}')" id="WindowResizeBar${windowId}" class="WindowResizeBarClass"></div>
-  `
-  currentWindows.push({ windowId: 'window' + windowId, screenId: "Blank" })
-  SelectScreen('screenDiv' + windowId, "Blank")
+  `;
+    currentWindows.push({ windowId: "window" + windowId, screenId: "Blank" });
+    SelectScreen("screenDiv" + windowId, "Blank");
 }
 
 function WindowResizeBarMouseDown(e, windowId) {
-  isResizingWindow = true
-  currentResizingWindowId = windowId
+    isResizingWindow = true;
+    currentResizingWindowId = windowId;
 
-  const windowElem = document.getElementById(windowId)
+    const windowElem = document.getElementById(windowId);
 
-  const measuredWidth = windowElem.getBoundingClientRect().width
-  windowElem.style.width = measuredWidth + 'px'
-  windowElem.style.flex = "0 0 auto"
+    const measuredWidth = windowElem.getBoundingClientRect().width;
+    windowElem.style.width = measuredWidth + "px";
+    windowElem.style.flex = "0 0 auto";
 
-  cursorStartX = e.clientX
-  windowStartWidth = measuredWidth
+    cursorStartX = e.clientX;
+    windowStartWidth = measuredWidth;
 
-  document.addEventListener('mousemove', WindowResizeMouseMove)
-  document.addEventListener('mouseup', WindowResizeMouseUp)
+    document.addEventListener("mousemove", WindowResizeMouseMove);
+    document.addEventListener("mouseup", WindowResizeMouseUp);
 
-  e.preventDefault()
+    e.preventDefault();
 }
 
 function WindowResizeMouseMove(e) {
-  if (!isResizingWindow) return
-  const diffX = e.clientX - cursorStartX
-  let newWidth = windowStartWidth + diffX
-  if (newWidth < 150) newWidth = 150
-  document.getElementById(currentResizingWindowId).style.width = newWidth + 'px'
+    if (!isResizingWindow) return;
+    const diffX = e.clientX - cursorStartX;
+    let newWidth = windowStartWidth + diffX;
+    if (newWidth < 150) newWidth = 150;
+    document.getElementById(currentResizingWindowId).style.width =
+        newWidth + "px";
 }
 
 function WindowResizeMouseUp() {
-  isResizingWindow = false
-  document.removeEventListener('mousemove', WindowResizeMouseMove)
-  document.removeEventListener('mouseup', WindowResizeMouseUp)
+    isResizingWindow = false;
+    document.removeEventListener("mousemove", WindowResizeMouseMove);
+    document.removeEventListener("mouseup", WindowResizeMouseUp);
 }
 
 function GetScreenHTML(id) {
-  for (let i = 0; i < screens.length; i++) {
-    const screen = screens[i];
-    if (screen.id == id) return screen.html
-  }
+    for (let i = 0; i < screens.length; i++) {
+        const screen = screens[i];
+        if (screen.id == id) return screen.html;
+    }
 }
 
 function CreateScreenSelectBoxString() {
-  for (let i = 0; i < screens.length; i++) {
-    const screen = screens[i];
-    screenSelectBoxString += `<option value="${screen.id}">${screen.id}</option>\n`
-  }
+    for (let i = 0; i < screens.length; i++) {
+        const screen = screens[i];
+        screenSelectBoxString += `<option value="${screen.id}">${screen.id}</option>\n`;
+    }
 }
 
 function SelectScreen(screenDivId, screenId) {
-  document.getElementById(screenDivId).innerHTML = GetScreenHTML(screenId)
-  const windowId = "window" + screenDivId.slice("screenDiv".length)
+    document.getElementById(screenDivId).innerHTML = GetScreenHTML(screenId);
+    const windowId = "window" + screenDivId.slice("screenDiv".length);
 
-  FindProperty(currentWindows, "windowId", windowId).screenId = screenId
-  
-  if(screenId == "StatusScreen"){
-    document.getElementById("LocoSpeedSlider").value = locoSpeed
-    document.getElementById("ManipulatorSpeedSlider").value = manipulatorSpeed
-    document.getElementById("LocoSpeedValue").textContent = locoSpeed
-    document.getElementById("ManipulatorSpeedValue").textContent = manipulatorSpeed
-  }
-  else if(screenId == "CameraScreen"){
-    setTimeout(() => {
-      let canvas = document.getElementById('video-canvas');
-      let url = 'ws://' + document.location.hostname + ':8082/';
-      cameraPlayer1 = new JSMpeg.Player(url, { canvas: canvas });
+    FindProperty(currentWindows, "windowId", windowId).screenId = screenId;
 
-      let canvas2 = document.getElementById('video-canvas2');
-      let url2 = 'ws://' + document.location.hostname + ':8084/';
-      cameraPlayer2 = new JSMpeg.Player(url2, { canvas: canvas2 });
+    if (screenId == "StatusScreen") {
+        document.getElementById("LocoSpeedSlider").value = locoSpeed;
+        document.getElementById("ManipulatorSpeedSlider").value =
+            manipulatorSpeed;
+        document.getElementById("LocoSpeedValue").textContent = locoSpeed;
+        document.getElementById("ManipulatorSpeedValue").textContent =
+            manipulatorSpeed;
+    } else if (screenId == "CameraScreen") {
+        setTimeout(() => {
+            let canvas = document.getElementById("video-canvas");
+            let url = "ws://" + document.location.hostname + ":8082/";
+            cameraPlayer1 = new JSMpeg.Player(url, { canvas: canvas });
+
+            let canvas2 = document.getElementById("video-canvas2");
+            let url2 = "ws://" + document.location.hostname + ":8084/";
+            cameraPlayer2 = new JSMpeg.Player(url2, { canvas: canvas2 });
 
       let canvas3 = document.getElementById('video-canvas3');
       let url3 = 'ws://' + document.location.hostname + ':8086/';
@@ -483,27 +500,31 @@ function SelectScreen(screenDivId, screenId) {
 }
 
 function UpdateScreenSelectBoxOptions() {
-  for (let a = 0; a < currentWindows.length; a++) {
-    const window = currentWindows[a];
-    const selectboxId = "WindowSelectBox" + window.windowId.slice("window".length)
-    const children = document.getElementById(selectboxId).children
+    for (let a = 0; a < currentWindows.length; a++) {
+        const window = currentWindows[a];
+        const selectboxId =
+            "WindowSelectBox" + window.windowId.slice("window".length);
+        const children = document.getElementById(selectboxId).children;
 
-    for (let i = 0; i < children.length; i++) {
-      const option = children[i];
+        for (let i = 0; i < children.length; i++) {
+            const option = children[i];
 
-      if (option.value != "Blank" && window.screenId != option.value && FindProperty(currentWindows, "screenId", option.value)) {
-        option.disabled = true
-      }
-      // After some changes the value of the selectbox started to change when a new window is added.
-      // I have no idea why. The else if condition below is for temporary fix.
-      else if (window.screenId == option.value) {
-        option.selected = true
-      }
-      else {
-        option.disabled = false
-      }
+            if (
+                option.value != "Blank" &&
+                window.screenId != option.value &&
+                FindProperty(currentWindows, "screenId", option.value)
+            ) {
+                option.disabled = true;
+            }
+            // After some changes the value of the selectbox started to change when a new window is added.
+            // I have no idea why. The else if condition below is for temporary fix.
+            else if (window.screenId == option.value) {
+                option.selected = true;
+            } else {
+                option.disabled = false;
+            }
+        }
     }
-  }
 }
 
 // function ChangeWindowSize(id, size) {
@@ -513,364 +534,376 @@ function UpdateScreenSelectBoxOptions() {
 // }
 
 function CloseWindow(id) {
-  document.getElementById(id).remove();
-  const windowResizeBarId = "WindowResizeBar" + id.slice("window".length)
-  document.getElementById(windowResizeBarId).remove()
+    document.getElementById(id).remove();
+    const windowResizeBarId = "WindowResizeBar" + id.slice("window".length);
+    document.getElementById(windowResizeBarId).remove();
 
-  const index = currentWindows.indexOf(id)
-  currentWindows.splice(index, 1)
+    const index = currentWindows.indexOf(id);
+    currentWindows.splice(index, 1);
 
-  UpdateScreenSelectBoxOptions()
+    UpdateScreenSelectBoxOptions();
 }
 
 function ChangeOrder(id, direction) {
-  if (currentWindows.length <= 1) return
-  const window = FindProperty(currentWindows, "windowId", id)
-  const index = currentWindows.indexOf(window)
+    if (currentWindows.length <= 1) return;
+    const window = FindProperty(currentWindows, "windowId", id);
+    const index = currentWindows.indexOf(window);
 
-  if (index == 0 && direction < 0) return
-  else if (index == currentWindows.length - 1 & direction > 1) return
+    if (index == 0 && direction < 0) return;
+    else if ((index == currentWindows.length - 1) & (direction > 1)) return;
 
-  currentWindows.splice(index, 1)
-  currentWindows.splice(index + direction, 0, window)
+    currentWindows.splice(index, 1);
+    currentWindows.splice(index + direction, 0, window);
 
-  for (let i = 0; i < currentWindows.length; i++) {
-    const windowId = currentWindows[i].windowId
-    const window = document.getElementById(windowId);
-    const windowResizeBarId = "WindowResizeBar" + windowId.slice("window".length)
-    const windowResizeBar = document.getElementById(windowResizeBarId)
-    
-    const flexIndex = (i+1)*2
+    for (let i = 0; i < currentWindows.length; i++) {
+        const windowId = currentWindows[i].windowId;
+        const window = document.getElementById(windowId);
+        const windowResizeBarId =
+            "WindowResizeBar" + windowId.slice("window".length);
+        const windowResizeBar = document.getElementById(windowResizeBarId);
 
-    window.style.order = flexIndex
-    windowResizeBar.style.order = flexIndex + 1
-  }
+        const flexIndex = (i + 1) * 2;
+
+        window.style.order = flexIndex;
+        windowResizeBar.style.order = flexIndex + 1;
+    }
 }
-
-
 
 //#endregion
 
 //#region ControllerScreen
-CreateButtonFunctionsString()
+CreateButtonFunctionsString();
 
 function CreateButtonFunctionsString() {
-  buttonFunctionsString += '<option value="none">none</option>\n'
-  for (let i = 0; i < commandFunctions.length; i++) {
-    const func = commandFunctions[i];
-    buttonFunctionsString += `
+    buttonFunctionsString += '<option value="none">none</option>\n';
+    for (let i = 0; i < commandFunctions.length; i++) {
+        const func = commandFunctions[i];
+        buttonFunctionsString += `
     <option value="${func.id}">${func.id}</option>\n
-    `
-  }
+    `;
+    }
 }
 
 function PrintControllerId() {
-  console.log(controllerId)
+    console.log(controllerId);
 }
 
 function GetControllerConfigFunction(type, id) {
-  for (let i = 0; i < controllerConfigs.length; i++) {
-    const controllerConfig = controllerConfigs[i];
-    if(controllerConfig.ids.includes(controllerId)){
-      const config = controllerConfig.config
-      const subConfig = FindProperty(config, type, id)
-      return subConfig != undefined ? subConfig.func : "none"
+    for (let i = 0; i < controllerConfigs.length; i++) {
+        const controllerConfig = controllerConfigs[i];
+        if (controllerConfig.ids.includes(controllerId)) {
+            const config = controllerConfig.config;
+            const subConfig = FindProperty(config, type, id);
+            return subConfig != undefined ? subConfig.func : "none";
+        }
     }
-  }
 }
 //#endregion
 
 //#region ManipulatorScreen
 // updateArm(45,-45,-45)
 function updateArm(dof2, dof3, dof4) {
-  document.getElementById('ManipulatorDOF1').style.transform = `rotate(${dof2}deg)`;
-  document.getElementById('ManipulatorDOF2').style.transform = `rotate(${dof3}deg)`;
-  document.getElementById('ManipulatorDOF3').style.transform = `rotate(${dof4}deg)`;
+    document.getElementById("ManipulatorDOF1").style.transform =
+        `rotate(${dof2}deg)`;
+    document.getElementById("ManipulatorDOF2").style.transform =
+        `rotate(${dof3}deg)`;
+    document.getElementById("ManipulatorDOF3").style.transform =
+        `rotate(${dof4}deg)`;
 }
 
 //#endregion
 
 //#region StatusScreen
 function UpdateRoverStatus() {
-  const temps = [45, 46, 62, 48]
-  const speeds = [30, 45, 25, 28]
+    for (let i = 0; i < motorStatusData.loco.length; i++) {
+        const temp = motorStatusData.loco[i].temp.toFixed(0);
+        const locoStatusTemp = document.getElementById(
+            "LocoStatusTemp" + (i + 1),
+        );
+        locoStatusTemp.textContent = temp;
+        locoStatusTemp.style.color = ColorCalculator("temperature", temp);
+        locoStatusTemp.title = motorStatusData.loco[i].Port;
 
-  for (let i = 0; i < 4; i++) {
-    const temp = temps[i]
-    const locoStatusTemp = document.getElementById("LocoStatusTemp" + (i + 1))
-    locoStatusTemp.textContent = temp
-    locoStatusTemp.style.color = ColorCalculator("temperature", temp)
-
-    const speed = speeds[i]
-    const locoStatusSpeed = document.getElementById("LocoStatusSpeed" + (i + 1))
-    locoStatusSpeed.textContent = speed
-    locoStatusSpeed.style.color = ColorCalculator("speed", speed)
-  }
-}
-
-function LedChangeColor(color){
-  if(disableLedButtons) return
-  targetLedColor = color
-  LedButtonStateChanger(false)
-  disableLedButtons = true
-
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById("LedButton" + i).style.border = "3px solid transparent"
-  }
-  document.getElementById("LedButton" + color).style.border = "3px solid white"
-
-  setTimeout(() => {
-    disableLedButtons = false
-    LedButtonStateChanger(true)
-  }, 1000);
-}
-
-function LedButtonStateChanger(enabled){
-  const ledButtons = document.getElementsByClassName("LedButtonClass")
-  for (let i = 0; i < ledButtons.length; i++) {
-    const led = ledButtons[i];
-    if(enabled){
-      led.classList.remove("LedButtonDeactivatedClass")
+        const speed = (
+            (motorStatusData.loco[i].Velocity * 60) /
+            (2 * Math.PI)
+        ).toFixed(0);
+        const locoStatusSpeed = document.getElementById(
+            "LocoStatusSpeed" + (i + 1),
+        );
+        locoStatusSpeed.textContent = speed;
+        locoStatusSpeed.style.color = ColorCalculator("speed", speed);
     }
-    else{
-      led.classList.add("LedButtonDeactivatedClass")
+}
+
+function LedChangeColor(color) {
+    if (disableLedButtons) return;
+    targetLedColor = color;
+    LedButtonStateChanger(false);
+    disableLedButtons = true;
+
+    for (let i = 1; i <= 6; i++) {
+        document.getElementById("LedButton" + i).style.border =
+            "3px solid transparent";
     }
-  }
+    document.getElementById("LedButton" + color).style.border =
+        "3px solid white";
+
+    setTimeout(() => {
+        disableLedButtons = false;
+        LedButtonStateChanger(true);
+    }, 1000);
 }
 
-function SpeedControl(type, value){
-  document.getElementById(type + "SpeedValue").textContent = value
-  if(type == "Loco"){    
-    locoSpeed = parseFloat(value)
-    document.getElementById("LocoSpeedSlider").value = value
-  }
-  else if(type == "Manipulator"){
-    manipulatorSpeed = parseFloat(value)
-    document.getElementById("ManipulatorSpeedSlider").value = value
-  }
-  
+function LedButtonStateChanger(enabled) {
+    const ledButtons = document.getElementsByClassName("LedButtonClass");
+    for (let i = 0; i < ledButtons.length; i++) {
+        const led = ledButtons[i];
+        if (enabled) {
+            led.classList.remove("LedButtonDeactivatedClass");
+        } else {
+            led.classList.add("LedButtonDeactivatedClass");
+        }
+    }
 }
 
-function SpeedControlIncremental(type, increment){
-  if(type == "Loco"){    
-    const locoSpeedSlider = document.getElementById("LocoSpeedSlider")
-    locoSpeed += increment
-    if(locoSpeed > parseFloat(locoSpeedSlider.max)) locoSpeed = parseFloat(locoSpeedSlider.max)
-    if(locoSpeed < 0) locoSpeed = 0
-    SpeedControl("Loco", locoSpeed)
-  }
-  else if(type == "Manipulator"){
-    const manipulatorSpeedSlider = document.getElementById("ManipulatorSpeedSlider")
-    manipulatorSpeed += increment
-    if(manipulatorSpeed > parseFloat(manipulatorSpeedSlider.max)) manipulatorSpeed = parseFloat(manipulatorSpeedSlider.max)
-    if(manipulatorSpeed < 0) manipulatorSpeed = 0
-    SpeedControl("Manipulator", manipulatorSpeed)
-  }
+function SpeedControl(type, value) {
+    document.getElementById(type + "SpeedValue").textContent = value;
+    if (type == "Loco") {
+        locoSpeed = parseFloat(value);
+        document.getElementById("LocoSpeedSlider").value = value;
+    } else if (type == "Manipulator") {
+        manipulatorSpeed = parseFloat(value);
+        document.getElementById("ManipulatorSpeedSlider").value = value;
+    }
 }
 
-function SwitchLocoMotors(direction){
-  let horizontal = false
-  let vertical = false
-  
-  if(locoMotorDirection.includes("h")) horizontal = true
-  if(locoMotorDirection.includes("v")) vertical = true
+function SpeedControlIncremental(type, increment) {
+    if (type == "Loco") {
+        const locoSpeedSlider = document.getElementById("LocoSpeedSlider");
+        locoSpeed += increment;
+        if (locoSpeed > parseFloat(locoSpeedSlider.max))
+            locoSpeed = parseFloat(locoSpeedSlider.max);
+        if (locoSpeed < 0) locoSpeed = 0;
+        SpeedControl("Loco", locoSpeed);
+    } else if (type == "Manipulator") {
+        const manipulatorSpeedSlider = document.getElementById(
+            "ManipulatorSpeedSlider",
+        );
+        manipulatorSpeed += increment;
+        if (manipulatorSpeed > parseFloat(manipulatorSpeedSlider.max))
+            manipulatorSpeed = parseFloat(manipulatorSpeedSlider.max);
+        if (manipulatorSpeed < 0) manipulatorSpeed = 0;
+        SpeedControl("Manipulator", manipulatorSpeed);
+    }
+}
 
-  if(direction == "horizontal") horizontal = !horizontal
-  if(direction == "vertical") vertical = !vertical
+function SwitchLocoMotors(direction) {
+    let horizontal = false;
+    let vertical = false;
 
-  if(horizontal && !vertical) locoMotorDirection = "h"
-  else if(!horizontal && vertical) locoMotorDirection = "v"
-  else if(horizontal && vertical) locoMotorDirection = "hv"
-  else locoMotorDirection = ""
-  
-  document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color2)"
-  document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color2)"
-  if(horizontal) document.getElementById("SwitchLocoHorizontal").style.backgroundColor = "var(--color-blue)"
-  if(vertical) document.getElementById("SwitchLocoVertical").style.backgroundColor = "var(--color-blue)"
+    if (locoMotorDirection.includes("h")) horizontal = true;
+    if (locoMotorDirection.includes("v")) vertical = true;
+
+    if (direction == "horizontal") horizontal = !horizontal;
+    if (direction == "vertical") vertical = !vertical;
+
+    if (horizontal && !vertical) locoMotorDirection = "h";
+    else if (!horizontal && vertical) locoMotorDirection = "v";
+    else if (horizontal && vertical) locoMotorDirection = "hv";
+    else locoMotorDirection = "";
+
+    document.getElementById("SwitchLocoHorizontal").style.backgroundColor =
+        "var(--color2)";
+    document.getElementById("SwitchLocoVertical").style.backgroundColor =
+        "var(--color2)";
+    if (horizontal)
+        document.getElementById("SwitchLocoHorizontal").style.backgroundColor =
+            "var(--color-blue)";
+    if (vertical)
+        document.getElementById("SwitchLocoVertical").style.backgroundColor =
+            "var(--color-blue)";
 }
 //#endregion
 
 //#region CameraScreen
 function moveLeft(button) {
-  const block = button.closest('.video-block');
-  const prev = block.previousElementSibling;
-  if (prev) {
-    block.parentNode.insertBefore(block, prev);
-  }
+    const block = button.closest(".video-block");
+    const prev = block.previousElementSibling;
+    if (prev) {
+        block.parentNode.insertBefore(block, prev);
+    }
 }
 function moveRight(button) {
-  const block = button.closest('.video-block');
-  const next = block.nextElementSibling;
-  if (next) {
-    block.parentNode.insertBefore(next, block);
-  }
+    const block = button.closest(".video-block");
+    const next = block.nextElementSibling;
+    if (next) {
+        block.parentNode.insertBefore(next, block);
+    }
 }
 function downloadCanvas(canvas, filename) {
-  const image = canvas.toDataURL("image/png");
-  const a = document.createElement("a");
-  a.href = image;
-  a.download = filename;
-  a.click();
+    const image = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = image;
+    a.download = filename;
+    a.click();
 }
 function downloadAllCanvases() {
-  const canvas1 = document.getElementById("video-canvas");
-  const canvas2 = document.getElementById("video-canvas2");
-  const canvas3 = document.getElementById("video-canvas3");
-  if (canvas1) downloadCanvas(canvas1, "frame1.png");
-  if (canvas2) downloadCanvas(canvas2, "frame2.png");
-  if (canvas3) downloadCanvas(canvas3, "frame3.png");
+    const canvas1 = document.getElementById("video-canvas");
+    const canvas2 = document.getElementById("video-canvas2");
+    const canvas3 = document.getElementById("video-canvas3");
+    if (canvas1) downloadCanvas(canvas1, "frame1.png");
+    if (canvas2) downloadCanvas(canvas2, "frame2.png");
+    if (canvas3) downloadCanvas(canvas3, "frame3.png");
 }
 //#endregion
 
 //#region Connection
 
 function connectToBridge() {
-  reconnectAttempts = 0;
+    reconnectAttempts = 0;
 
-  try {
-    // Create WebSocket connection
-    connectionStatus.textContent = `Connecting to bridge at ${ipAdress}:${port}...`;
+    try {
+        // Create WebSocket connection
+        connectionStatus.textContent = `Connecting to bridge at ${ipAdress}:${port}...`;
 
-    // Use WebSocket protocol (ws:// or wss:// for secure)
-    socket = new WebSocket(`ws://${ipAdress}:${port}`);
+        // Use WebSocket protocol (ws:// or wss:// for secure)
+        socket = new WebSocket(`ws://${ipAdress}:${port}`);
 
-    // Connection opened
-    socket.addEventListener('open', function (event) {
-      isConnected = true;
-      connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
-      connectionStatus.classList.add('connected');
-      connectBtn.textContent = 'DISCONNECT';
-      connectBtn.classList.add('connected');
+        // Connection opened
+        socket.addEventListener("open", function (event) {
+            isConnected = true;
+            connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
+            connectionStatus.classList.add("connected");
+            connectBtn.textContent = "DISCONNECT";
+            connectBtn.classList.add("connected");
 
-      // Start sending joystick data
-      startSendingData();
-    });
+            // Start sending joystick data
+            startSendingData();
+        });
 
-    // Listen for messages from the server
-    socket.addEventListener('message', function (event) {
-      try {
-        const response = JSON.parse(event.data);
-        // console.log('Message from bridge:', response);
-        latestTimestamp = response.timestamp
-        // Handle different response types
-        if (response.status === 'connected') {
-          console.log('Connection confirmed by bridge');
-          connectionStatus.textContent = 'Connected';
-          connectionStatus.classList.add('connected');
-        } else if (response.status === 'still_connected') {
-	        
-          console.log(response.message);
+        // Listen for messages from the server
+        socket.addEventListener("message", function (event) {
+            try {
+                const response = JSON.parse(event.data);
+                // console.log('Message from bridge:', response);
+                latestTimestamp = response.timestamp;
+                // Handle different response types
+                if (response.status === "connected") {
+                    console.log("Connection confirmed by bridge");
+                    connectionStatus.textContent = "Connected";
+                    connectionStatus.classList.add("connected");
+                } else if (response.status === "still_connected") {
+                    motorStatusData.loco = response.message.loco;
+                    if (response.message.crash) {
+                        //alert("EYVAH!")
+                        console.log("eyvah!");
+                    }
+                } else if (response.status === "sent") {
+                    // Data was successfully sent to the rover
+                    connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
+                } else if (response.status === "emergency_stop_sent") {
+                    connectionStatus.textContent =
+                        "Emergency stop sent to rover";
+                } else if (response.status === "resume_control_acknowledged") {
+                    connectionStatus.textContent = "Control resumed";
+                } else if (response.status === "error") {
+                    console.error("Error from bridge:", response.message);
+                    connectionStatus.textContent = `Error: ${response.message}`;
+                }
+            } catch (error) {
+                console.error("Error parsing bridge response:", error);
+            }
+        });
 
-          const scienceData = response.message.science
-          if(scienceScreenOn && scienceData){
-            document.getElementById("LoadCell1").textContent = scienceData.loadCell1
-            document.getElementById("LoadCell2").textContent = scienceData.loadCell2
-            document.getElementById("AirHumidity").textContent = scienceData.airHumidity
-            document.getElementById("AirTemperature").textContent = scienceData.airTemperature
-            document.getElementById("SoilHumidity").textContent = scienceData.soilHumidity
-          }
-        } else if (response.status === 'sent') {
-          // Data was successfully sent to the rover
-          connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
-        } else if (response.status === 'emergency_stop_sent') {
-          connectionStatus.textContent = 'Emergency stop sent to rover';
-        } else if (response.status === 'resume_control_acknowledged') {
-          connectionStatus.textContent = 'Control resumed';
-        } else if (response.status === 'error') {
-          console.error('Error from bridge:', response.message);
-          connectionStatus.textContent = `Error: ${response.message}`;
-        }
-      } catch (error) {
-        console.error('Error parsing bridge response:', error);
-      }
-    });
+        // Connection closed
+        // socket.addEventListener('close', function (event) {
+        //   if (isConnected) {
+        //     isConnected = false;
+        //     connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
+        //     connectionStatus.classList.remove('connected');
+        //     // connectBtn.textContent = 'CONNECT';
+        //     // connectBtn.classList.remove('connected');
 
-    // Connection closed
-    // socket.addEventListener('close', function (event) {
-    //   if (isConnected) {
-    //     isConnected = false;
-    //     connectionStatus.textContent = `Connection closed: ${event.reason || 'Unknown reason'}`;
-    //     connectionStatus.classList.remove('connected');
-    //     // connectBtn.textContent = 'CONNECT';
-    //     // connectBtn.classList.remove('connected');
+        //     // if (sendInterval) {
+        //     //   clearInterval(sendInterval);
+        //     //   sendInterval = null;
+        //     // }
 
-    //     // if (sendInterval) {
-    //     //   clearInterval(sendInterval);
-    //     //   sendInterval = null;
-    //     // }
+        //     // if (pingInterval) {
+        //     //   clearInterval(pingInterval);
+        //     //   pingInterval = null;
+        //     // }
 
-    //     // if (pingInterval) {
-    //     //   clearInterval(pingInterval);
-    //     //   pingInterval = null;
-    //     // }
+        //     // Try to reconnect if not manually disconnected
+        //     // if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        //     //   reconnectAttempts++;
+        //     //   connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
+        //     //   setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
+        //     // }
+        //   }
+        // });
 
-    //     // Try to reconnect if not manually disconnected
-    //     // if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-    //     //   reconnectAttempts++;
-    //     //   connectionStatus.textContent = `Connection lost. Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`;
-    //     //   setTimeout(connectToBridge, 2000); // Try to reconnect after 2 seconds
-    //     // }
-    //   }
-    // });
-
-    // Connection error
-    socket.addEventListener('error', function (error) {
-      connectionStatus.textContent = `Connection error`;
-      console.error('WebSocket error:', error);
-    });
-
-  } catch (error) {
-    connectionStatus.textContent = `Connection failed: ${error.message}`;
-    console.error('Connection error:', error);
-  }
+        // Connection error
+        socket.addEventListener("error", function (error) {
+            connectionStatus.textContent = `Connection error`;
+            console.error("WebSocket error:", error);
+        });
+    } catch (error) {
+        connectionStatus.textContent = `Connection failed: ${error.message}`;
+        console.error("Connection error:", error);
+    }
 }
 
 function disconnectFromBridge() {
-  // if (sendInterval) {
-  //   clearInterval(sendInterval);
-  //   sendInterval = null;
-  // }
+    // if (sendInterval) {
+    //   clearInterval(sendInterval);
+    //   sendInterval = null;
+    // }
 
-  // if (pingInterval) {
-  //   clearInterval(pingInterval);
-  //   pingInterval = null;
-  // }
+    // if (pingInterval) {
+    //   clearInterval(pingInterval);
+    //   pingInterval = null;
+    // }
 
-  if (socket) {
-    // Send a clean disconnect message if possible
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        command: 'disconnect',
-        message: 'User initiated disconnect'
-      }));
+    if (socket) {
+        // Send a clean disconnect message if possible
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(
+                JSON.stringify({
+                    command: "disconnect",
+                    message: "User initiated disconnect",
+                }),
+            );
+        }
+
+        // Close the socket
+        socket.close(1000, "User disconnected");
+        socket = null;
     }
 
-    // Close the socket
-    socket.close(1000, 'User disconnected');
-    socket = null;
-  }
-
-  isConnected = false;
-  connectionStatus.textContent = 'Disconnected';
-  connectionStatus.classList.remove('connected');
-  reconnectAttempts = 0;
+    isConnected = false;
+    connectionStatus.textContent = "Disconnected";
+    connectionStatus.classList.remove("connected");
+    reconnectAttempts = 0;
 }
 //#endregion
 
 //#region General Functions
 function FindProperty(array, property, value) {
-  for (let i = 0; i < array.length; i++) {
-    const element = array[i];
-    if (element[property] == value) return element
-  }
+    for (let i = 0; i < array.length; i++) {
+        const element = array[i];
+        if (element[property] == value) return element;
+    }
 }
 
 function ColorCalculator(type, value) {
-  const tresholds = FindProperty(colorConfigs, "type", type).tresholds
+    const tresholds = FindProperty(colorConfigs, "type", type).tresholds;
 
-  if(tresholds[0] >= value) return "var(--color-green)"
-  else if(tresholds[1] >= value && value > tresholds[0]) return "var(--color-yellow)"
-  else if(value > tresholds[1]) return "var(--color-red)"
+    if (tresholds[0] >= value) return "var(--color-green)";
+    else if (tresholds[1] >= value && value > tresholds[0])
+        return "var(--color-yellow)";
+    else if (value > tresholds[1]) return "var(--color-red)";
 }
 //#endregion
 
@@ -878,205 +911,215 @@ function ColorCalculator(type, value) {
 
 // Gamepad
 setInterval(() => {
-  // console.log(navigator.getGamepads())
-  const gamepads = navigator.getGamepads()
-  const playerNumberElement = document.getElementById("PlayerNumber")
-  const ControllerScreenButtonsElement = document.getElementById("ControllerScreenButtons")
-  let currentGamepad = null
-  let controllerCount = 0
-  let controllerChanged = false
-  let controllerScreenOn = FindProperty(currentWindows, "screenId", "ControllerScreen") != undefined
-  let statusScreenOn = FindProperty(currentWindows, "screenId", "StatusScreen") != undefined
+    // console.log(navigator.getGamepads())
+    const gamepads = navigator.getGamepads();
+    const playerNumberElement = document.getElementById("PlayerNumber");
+    const ControllerScreenButtonsElement = document.getElementById(
+        "ControllerScreenButtons",
+    );
+    let currentGamepad = null;
+    let controllerCount = 0;
+    let controllerChanged = false;
+    let controllerScreenOn =
+        FindProperty(currentWindows, "screenId", "ControllerScreen") !=
+        undefined;
+    let statusScreenOn =
+        FindProperty(currentWindows, "screenId", "StatusScreen") != undefined;
 
-  // player number
-  for (let i = 0; i < gamepads.length; i++) {
-    const gamepad = gamepads[i];
-    if (gamepad != null) {
-      controllerCount++
+    // player number
+    for (let i = 0; i < gamepads.length; i++) {
+        const gamepad = gamepads[i];
+        if (gamepad != null) {
+            controllerCount++;
 
-      if (controllerScreenOn) {
-        playerNumberElement.textContent = "P" + (i + 1)
-        playerNumberElement.style.color = "var(--color-green)"
-      }
+            if (controllerScreenOn) {
+                playerNumberElement.textContent = "P" + (i + 1);
+                playerNumberElement.style.color = "var(--color-green)";
+            }
 
-      currentGamepad = gamepad
-      if (controllerId != gamepad.id) {
-        controllerId = gamepad.id
-        controllerChanged = true
-      }
-      else {
-        controllerChanged = false
-      }
-
-    }
-  }
-  
-
-  if (!controllerScreenOldState && controllerScreenOn) controllerChanged = true
-
-  if (controllerScreenOn) {
-
-    controllerScreenOldState = true
-    if (controllerCount == 0) {
-      playerNumberElement.textContent = "None"
-      playerNumberElement.style.color = "var(--color-red)"
-      playerNumberElement.title = "None"
-      ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>"
-      return
-    }
-    else if (controllerCount > 1) {
-      playerNumberElement.textContent = "Multiple"
-      playerNumberElement.style.color = "var(--color-yellow)"
+            currentGamepad = gamepad;
+            if (controllerId != gamepad.id) {
+                controllerId = gamepad.id;
+                controllerChanged = true;
+            } else {
+                controllerChanged = false;
+            }
+        }
     }
 
-    // buttons
-    if (controllerChanged) {
-      ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>" 
-    }
+    if (!controllerScreenOldState && controllerScreenOn)
+        controllerChanged = true;
 
-    for (let a = 0; a < currentGamepad.buttons.length; a++) {
-      const button = currentGamepad.buttons[a];
-      if (controllerChanged) {
-        // create buttons
-        ControllerScreenButtonsElement.innerHTML += `
+    if (controllerScreenOn) {
+        controllerScreenOldState = true;
+        if (controllerCount == 0) {
+            playerNumberElement.textContent = "None";
+            playerNumberElement.style.color = "var(--color-red)";
+            playerNumberElement.title = "None";
+            ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>";
+            return;
+        } else if (controllerCount > 1) {
+            playerNumberElement.textContent = "Multiple";
+            playerNumberElement.style.color = "var(--color-yellow)";
+        }
+
+        // buttons
+        if (controllerChanged) {
+            ControllerScreenButtonsElement.innerHTML = "<span>Buttons</span>";
+        }
+
+        for (let a = 0; a < currentGamepad.buttons.length; a++) {
+            const button = currentGamepad.buttons[a];
+            if (controllerChanged) {
+                // create buttons
+                ControllerScreenButtonsElement.innerHTML += `
           <div>
           <button id="controllerButton${a}" class="ButtonClass">${a}</button>
           <select id="controllerSelectBoxButton${a}" class='SelectBoxClass'>${buttonFunctionsString}</select>
           </div>
-        `
-        setTimeout(() => {
-          document.getElementById("controllerSelectBoxButton" + a).value = GetControllerConfigFunction('button', a)
-        }, 250);
-      }
+        `;
+                setTimeout(() => {
+                    document.getElementById(
+                        "controllerSelectBoxButton" + a,
+                    ).value = GetControllerConfigFunction("button", a);
+                }, 250);
+            }
 
+            const controllerButton = document.getElementById(
+                "controllerButton" + a,
+            );
+            if (button.pressed)
+                controllerButton.classList.add("ControlButtonActiveClass");
+            else controllerButton.classList.remove("ControlButtonActiveClass");
+            controllerButton.textContent = a + ": " + button.value.toFixed(4);
+        }
 
-      const controllerButton = document.getElementById("controllerButton" + a)
-      if (button.pressed) controllerButton.classList.add("ControlButtonActiveClass")
-      else controllerButton.classList.remove("ControlButtonActiveClass")
-      controllerButton.textContent = a + ": " + button.value.toFixed(4)
-    }
+        // axes
+        if (controllerChanged) {
+            ControllerScreenButtonsElement.innerHTML += "<span>Axes</span>";
+        }
 
-    // axes
-    if (controllerChanged) {
-      ControllerScreenButtonsElement.innerHTML += "<span>Axes</span>"
-    }
-
-    for (let a = 0; a < currentGamepad.axes.length; a++) {
-      const axis = currentGamepad.axes[a];
-      if (controllerChanged) {
-        // create buttons
-        ControllerScreenButtonsElement.innerHTML += `
+        for (let a = 0; a < currentGamepad.axes.length; a++) {
+            const axis = currentGamepad.axes[a];
+            if (controllerChanged) {
+                // create buttons
+                ControllerScreenButtonsElement.innerHTML += `
           <div>
           <button id="controllerAxis${a}" class="ButtonClass">${a}</button>
           <select id="controllerSelectBoxAxis${a}" class='SelectBoxClass'>"${buttonFunctionsString}</select>
           </div>
-        `
-        setTimeout(() => {
-          document.getElementById("controllerSelectBoxAxis" + a).value = GetControllerConfigFunction('axis', a)
-        }, 250);
-      }
-      const controllerAxis = document.getElementById("controllerAxis" + a)
-      controllerAxis.textContent = a + ": " + axis.toFixed(4)
-    }
-  }
-  else {
-    controllerScreenOldState = false
-  }
-
-  let currentCommandStrings = []
-
-  if (currentGamepad != null) {
-    // Button Func
-    for (let i = 0; i < currentGamepad.buttons.length; i++) {
-      let button = currentGamepad.buttons[i];
-      let buttonValue = button.value
-      if (!button.pressed) continue
-      
-      const configFunction = GetControllerConfigFunction("button", i)
-      if(configFunction == "ManipulatorSpeedIncrease"){
-        if(manipulatorSpeed == 100) continue
-        SpeedControlIncremental("Manipulator", 0.25)
-        continue
-      }
-      else if(configFunction == "ManipulatorSpeedDecrease"){
-        if(manipulatorSpeed == 0) continue
-        SpeedControlIncremental("Manipulator", -0.25)
-        continue
-      }
-
-      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
-        buttonValue *= manipulatorSpeed
-      }
-      
-
-      const commandString = configFunction + "#" + buttonValue.toFixed(4)
-      currentCommandStrings.push(commandString)
+        `;
+                setTimeout(() => {
+                    document.getElementById(
+                        "controllerSelectBoxAxis" + a,
+                    ).value = GetControllerConfigFunction("axis", a);
+                }, 250);
+            }
+            const controllerAxis = document.getElementById(
+                "controllerAxis" + a,
+            );
+            controllerAxis.textContent = a + ": " + axis.toFixed(4);
+        }
+    } else {
+        controllerScreenOldState = false;
     }
 
-    // Axis Func
-    for (let i = 0; i < currentGamepad.axes.length; i++) {
-      let axis = currentGamepad.axes[i];
-      if (Math.abs(axis) < controllerDeadzone) continue
-      
-      const configFunction = GetControllerConfigFunction("axis", i)
-      let parameter = ""
+    let currentCommandStrings = [];
 
-      if(configFunction == "DOF1"){
-        if(Math.abs(axis) < controllerDOF1Deadzone) continue
-      }
-      if(configFunction == "LocoLinear" || configFunction == "LocoAngular"){
-        parameter = locoMotorDirection  
-        console.log(parameter);
-      }
-      if(configFunction.includes("DOF") || configFunction.includes("EndEffector")){
-        axis *= manipulatorSpeed
-      }
+    if (currentGamepad != null) {
+        // Button Func
+        for (let i = 0; i < currentGamepad.buttons.length; i++) {
+            let button = currentGamepad.buttons[i];
+            let buttonValue = button.value;
+            if (!button.pressed) continue;
 
-      const commandString = configFunction + "#" + axis.toFixed(4) + "#" + parameter
-      
+            const configFunction = GetControllerConfigFunction("button", i);
+            if (configFunction == "ManipulatorSpeedIncrease") {
+                if (manipulatorSpeed == 100) continue;
+                SpeedControlIncremental("Manipulator", 0.25);
+                continue;
+            } else if (configFunction == "ManipulatorSpeedDecrease") {
+                if (manipulatorSpeed == 0) continue;
+                SpeedControlIncremental("Manipulator", -0.25);
+                continue;
+            }
 
-      currentCommandStrings.push(commandString)
+            if (
+                configFunction.includes("DOF") ||
+                configFunction.includes("EndEffector")
+            ) {
+                buttonValue *= manipulatorSpeed;
+            }
+
+            const commandString = configFunction + "#" + buttonValue.toFixed(4);
+            currentCommandStrings.push(commandString);
+        }
+
+        // Axis Func
+        for (let i = 0; i < currentGamepad.axes.length; i++) {
+            let axis = currentGamepad.axes[i];
+            if (Math.abs(axis) < controllerDeadzone) continue;
+
+            const configFunction = GetControllerConfigFunction("axis", i);
+            let parameter = "";
+
+            if (configFunction == "DOF1") {
+                if (Math.abs(axis) < controllerDOF1Deadzone) continue;
+            }
+            if (
+                configFunction == "LocoLinear" ||
+                configFunction == "LocoAngular"
+            ) {
+                parameter = locoMotorDirection;
+                axis *= locoSpeed;
+            }
+            if (
+                configFunction.includes("DOF") ||
+                configFunction.includes("EndEffector")
+            ) {
+                axis *= manipulatorSpeed;
+            }
+
+            const commandString =
+                configFunction + "#" + axis.toFixed(4) + "#" + parameter;
+
+            currentCommandStrings.push(commandString);
+        }
+    } else {
+        // what to do if no controller
     }
-  }
-  else {
-    // what to do if no controller
-  }
 
-  // console.log(currentCommandStrings);
+    // console.log(currentCommandStrings);
 
+    //send commmands
+    if (isConnected) {
+        // Latency
+        const currentTime = new Date().getTime();
+        const latency = currentTime - latestTimestamp;
+        latencySpan.textContent = latency;
+        latencySpan.style.color = ColorCalculator("latency", latency);
 
-  //send commmands
-  if (isConnected) {
-     // Latency
-    const currentTime = new Date().getTime()
-    const latency = currentTime - latestTimestamp
-    latencySpan.textContent = latency
-    latencySpan.style.color = ColorCalculator("latency", latency)
+        if (targetLedColor != "") {
+            currentCommandStrings.push("Led#" + targetLedColor);
+            targetLedColor = "";
+        }
 
-    if(targetLedColor != ""){
-      currentCommandStrings.push("Led#" + targetLedColor)
-      targetLedColor = ""
+        // if(currentCommandStrings.length > 0) console.log(currentCommandStrings);
+
+        socket.send(
+            JSON.stringify({
+                commands: currentCommandStrings,
+                timestamp: Date.now(),
+            }),
+        );
+    } else {
+        latencySpan.textContent = "-";
+        latencySpan.style.color = "white";
     }
 
-    // if(currentCommandStrings.length > 0) console.log(currentCommandStrings);
-    
+    if (statusScreenOn) {
+        UpdateRoverStatus();
+    }
 
-    socket.send(JSON.stringify({
-      commands: currentCommandStrings,
-      timestamp: Date.now()
-    }));
-  }
-  else{
-    latencySpan.textContent = "-"
-    latencySpan.style.color = "white"
-  }
-
-  if (statusScreenOn) {
-    UpdateRoverStatus()
-  }
-
-  // console.log(currentGamepad);
-
-
+    // console.log(currentGamepad);
 }, 100);
-

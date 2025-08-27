@@ -17,7 +17,7 @@ trap cleanup SIGINT SIGTERM EXIT
 
 # Run the scripts in the foreground (so they stop when the terminal closes)
 ./src/driver.py &
-#python -m http.server --directory src/www/ 8080 &
+#python -m http.server --directory src/www/ 8060 &
 ./src/httpserver.py
 
 # Wait to keep the script running until interrupted

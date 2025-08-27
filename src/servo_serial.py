@@ -1,10 +1,10 @@
-import serial
-from serial import threaded
+import csv
 import time
+import serial
+import traceback
 import numpy as np
 from enum import Enum
-import traceback
-import csv
+from serial import threaded
 
 """
 A python module to control the CubeMars AK series actuators over the serial port.
@@ -36,7 +36,7 @@ Servo_Params_Serial = {
         'Kt': 0.123, # Nm before gearbox per A of qaxis current
         'GEAR_RATIO': 10, # 10:1 gear ratio
         'NUM_POLE_PAIRS' : 21 # 21 pole pairs
-    }             
+    }
 }
 """
 Dictionary with the default parameters for the motors, indexed by their name
@@ -90,8 +90,8 @@ CRC 16 table as given in the manual, to be used to verify the packets recived
 
 PARAMETER_FLAGS = {
     # parameter       : flag
-    'MOSFET_TEMP'     : 1,      
-    'MOTOR_TEMP'      : 1 << 2, 
+    'MOSFET_TEMP'     : 1,
+    'MOTOR_TEMP'      : 1 << 2,
     'OUTPUT_CURRENT'  : 1 << 3,
     'INPUT_CURRENT'   : 1 << 4,
     'D_CURRENT'       : 1 << 5,
@@ -127,7 +127,7 @@ ERROR_CODES = {
     16 : 'FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_2',
     17 : 'FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_3',
     18 : 'FAULT_CODE_UNBALANCED_CURRENTS',
-}    
+}
 """
 A dictionary mapping error code numbers to the name of the error code
 """
@@ -179,7 +179,7 @@ def buffer_append_uint16( buffer,number):
     """
     buffer.append((number >> 8)&(0x00FF))
     buffer.append((number)&(0x00FF))
-    
+
 # Buffer allocation for 32 bit
 def buffer_append_int32(buffer,number):
     """
@@ -250,10 +250,10 @@ def buffer_get_int8(buffer, ind):
 
     Args:
         buffer: array with bytes of data
-        ind: location to index   
+        ind: location to index
 
     Returns:
-        8 bit integer at data[ind] 
+        8 bit integer at data[ind]
     """
     return np.int8((buffer[ind]))
 
@@ -263,7 +263,7 @@ def buffer_get_int16(buffer, ind):
 
     Args:
         buffer: array with bytes of data
-        ind: location to index    
+        ind: location to index
 
     Returns:
         16 bit integer at data[ind:ind+1]
@@ -285,7 +285,7 @@ def buffer_get_int32(buffer, ind):
 
 def crc16(data, DL):
     """
-    Calculate the crc16 value for the given data array and data length. 
+    Calculate the crc16 value for the given data array and data length.
     This is just translated to python from the C code in the manual on the cubmars website.
 
     Args:
@@ -346,7 +346,7 @@ def parse_packet(packet):
             return None
     else:
         return None
-                
+
 class servo_serial_motor_state:
     """
     An object representing the state of the motor
@@ -372,7 +372,7 @@ class servo_serial_motor_state:
         self.acceleration = 0
         self.position = 0
 
-    def set_state(self, 
+    def set_state(self,
                 mos_temperature = None,
                 motor_temperature = None,
                 output_current = None,
@@ -515,10 +515,10 @@ class motor_listener(serial.threaded.Protocol):
                     self.handle_packet(self.buffer)
                     self.state = 0
                     self.buffer = []
-                
+
     def handle_packet(self, packet):
         """
-        Called whenever the state machine finishes reading a packet, 
+        Called whenever the state machine finishes reading a packet,
         to update motor manager object.
 
         Args:
@@ -543,7 +543,7 @@ class TMotorManager_servo_serial():
     """
     def __init__(self, port = '/dev/ttyUSB0', baud=961200, motor_params=Servo_Params_Serial['AK70-10'], max_mosfett_temp = 100,):
         """
-        Initialize the motor manager. Note that this will not turn on the motor, 
+        Initialize the motor manager. Note that this will not turn on the motor,
         until __enter__ is called (automatically called in a with block)
 
         Args:
@@ -564,9 +564,9 @@ class TMotorManager_servo_serial():
         self.max_temp = max_mosfett_temp # max temp in deg C, can update later
 
         # TODO verify these work for other motor types!
-        self.radps_per_ERPM =2*np.pi/180/60 # 5.82E-04 
+        self.radps_per_ERPM =2*np.pi/180/60 # 5.82E-04
         self.rad_per_Eang = 2*(np.pi/180)/(self.motor_params['NUM_POLE_PAIRS']) # 1.85e-4
-        
+
         self._entered = False
         self._start_time = time.time()
         self._last_update_time = self._start_time
@@ -574,7 +574,7 @@ class TMotorManager_servo_serial():
         self._updated = False
         self._ser = None
         self._reader_thread = None
-        
+
     def __enter__(self):
         """
         Used to safely power the motor on.
@@ -582,18 +582,18 @@ class TMotorManager_servo_serial():
         if not self._entered:
             # begin serial connection
             self._ser = serial.Serial(
-                self.port, 
-                self.baud, 
+                self.port,
+                self.baud,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
-                timeout=0.0001, 
+                timeout=0.0001,
                 inter_byte_timeout=0.001
                 )
 
             # start another thread to handle recieved data
             self._reader_thread = serial.threaded.ReaderThread(self._ser, motor_listener)
-            self._listener = self._reader_thread.__enter__() 
+            self._listener = self._reader_thread.__enter__()
             self._listener.motor = self
 
             # send startup sequence
@@ -624,20 +624,20 @@ class TMotorManager_servo_serial():
         else:
             # it's already been entered!
             print(f"Already entered device: {self.device_info_string()}")
-        
+
     def __exit__(self, etype, value, tb):
         """
         Used to safely power the motor off and close the reader thread and serial port.
         """
         print('\nTurning off control for device: ' + self.device_info_string())
         # end reading thread
-        #self._reader_thread.stop() 
+        #self._reader_thread.stop()
 
         # power down motor
-        self._ser.write(self.comm_set_duty_cycle(0.0)) 
+        self._ser.write(self.comm_set_duty_cycle(0.0))
 
         # end serial connection
-        self._ser.close() 
+        self._ser.close()
 
         # if this was ended due to an error, print the stack trace
         if not (etype is None):
@@ -684,9 +684,9 @@ class TMotorManager_servo_serial():
         if self._motor_state.error != 0:
             raise RuntimeError(ERROR_CODES[self._motor_state.error])
 
-        
 
-    # comm data parsing 
+
+    # comm data parsing
     def parse_position_feedback_async(self, data):
         """
         Update this motor's asynch position based on recieved data
@@ -709,7 +709,7 @@ class TMotorManager_servo_serial():
     def parse_motor_parameters_async(self, data):
         """
         Update this motor's asynch state (except position) based on received data
- 
+
         Args:
             data: The data array to parse the parameters from
         """
@@ -743,27 +743,27 @@ class TMotorManager_servo_serial():
         i+=4
         self._motor_state_async.Vq = float(buffer_get_int32(data,i))/1000.0
         i+=4
-    
+
     def send_command(self):
         """
         Sends the current command that the user has specified.
         """
         if not (self._command is None):
-            # use the thread-safe method to write the command, so that we don't access the serial 
+            # use the thread-safe method to write the command, so that we don't access the serial
             # object while the reader thread is using it!!
             # TODO when pyserial adds full asyncio support, consider switching to that
             self._reader_thread.write(self._command)
-            
+
 
     def _send_specific_command(self, command):
         """
-        Sends the specified command rather than the current value of <this object>._command 
+        Sends the specified command rather than the current value of <this object>._command
 
         Args:
             command: bytearray with the command to send.
         """
         if not (self._command is None):
-            # use the thread-safe method to write the command, so that we don't access the serial 
+            # use the thread-safe method to write the command, so that we don't access the serial
             # object while the reader thread is using it!!
             # TODO when pyserial adds full asyncio support, consider switching to that
             self._reader_thread.write(command)
@@ -779,7 +779,7 @@ class TMotorManager_servo_serial():
         """
         if not self._entered:
             raise RuntimeError("Tried to update motor state before safely powering on for device: " + self.device_info_string())
-        
+
         if self.get_temperature_celsius() > self.max_temp:
             raise RuntimeError("Temperature greater than {}C for device: {}".format(self.max_temp, self.device_info_string()))
 
@@ -788,17 +788,17 @@ class TMotorManager_servo_serial():
 
         # send the command to get parameters (message will be read in other thread)
         self._send_specific_command(self.comm_get_motor_parameters())
-        
+
 
         # synchronize user-facing state with most recent async state
         # TODO implement some filtering on the async state, if it gets multiple updates
         # between user requested updates
         self._motor_state = self._motor_state_async
-        
+
     # comm protocol commands
     def power_on(self):
         """
-        Send the startup sequence command. Not sure why it's like this, but the 
+        Send the startup sequence command. Not sure why it's like this, but the
         command is [0x40, 0x80, 0x20, 0x02, 0x21, 0xc0]
         """
         self._command = bytearray([0x40, 0x80, 0x20, 0x02, 0x21, 0xc0])
@@ -960,7 +960,7 @@ class TMotorManager_servo_serial():
 
     def comm_set_multi_turn(self, set_command=True):
         """
-        Tell the motor to operate in multi-turn mode, rather than being limited to 
+        Tell the motor to operate in multi-turn mode, rather than being limited to
         Just 360 degrees of position feedback.
 
         Args:
@@ -988,7 +988,7 @@ class TMotorManager_servo_serial():
         if set_command:
             self._command = bytearray([0x02, 0x02, 0x5F, 0x01, 0x0E, 0xA0, 0x03])
         return cmd
-    
+
     def comm_set_motor_parameter_return_format_all(self, set_command=True):
         """
         Tell the motor to send back all possible fields when an update is requested.
@@ -1035,7 +1035,7 @@ class TMotorManager_servo_serial():
         if set_command:
             self._command = cmd
         return cmd
-        
+
     # getters for motor state
     def get_temperature_celsius(self):
         """
@@ -1043,7 +1043,7 @@ class TMotorManager_servo_serial():
         The most recently updated motor temperature in degrees C.
         """
         return self._motor_state.mos_temperature
-    
+
     def get_motor_error_code(self):
         """
         Returns:
@@ -1147,7 +1147,7 @@ class TMotorManager_servo_serial():
         """
         return self.get_current_qaxis_amps()*self.motor_params["Kt"]*self.motor_params["GEAR_RATIO"]
 
-    # user facing setters 
+    # user facing setters
     def set_output_velocity_radians_per_second(self, vel):
         """
         Update the current command to the desired velocity.
@@ -1161,7 +1161,7 @@ class TMotorManager_servo_serial():
             raise RuntimeError("Cannot control using speed mode for angles with magnitude greater than " + str(self.motor_params["V_max"]) + "rad/s!")
 
         if self._control_state not in [SERVO_SERIAL_CONTROL_STATE.VELOCITY]:
-            raise RuntimeError("Attempted to send speed command without entering speed control " + self.device_info_string()) 
+            raise RuntimeError("Attempted to send speed command without entering speed control " + self.device_info_string())
 
         self.comm_set_speed_ERPM(vel/self.radps_per_ERPM)
 
@@ -1178,7 +1178,7 @@ class TMotorManager_servo_serial():
             raise RuntimeError("Cannot control using duty cycle mode for more than 100 percent duty!")
 
         if self._control_state not in [SERVO_SERIAL_CONTROL_STATE.DUTY_CYCLE]:
-            raise RuntimeError("Attempted to duty cycle command without entering duty cycle control " + self.device_info_string()) 
+            raise RuntimeError("Attempted to duty cycle command without entering duty cycle control " + self.device_info_string())
 
         self.comm_set_duty_cycle(duty)
 
@@ -1195,7 +1195,7 @@ class TMotorManager_servo_serial():
             raise RuntimeError("Cannot control using current mode with magnitude greater than " + str(self.motor_params["I_max"]) + "rad/s!")
 
         if self._control_state not in [SERVO_SERIAL_CONTROL_STATE.CURRENT_LOOP]:
-            raise RuntimeError("Attempted to send current command without entering current control " + self.device_info_string()) 
+            raise RuntimeError("Attempted to send current command without entering current control " + self.device_info_string())
 
         self.comm_set_current_loop(curr)
 
@@ -1210,12 +1210,12 @@ class TMotorManager_servo_serial():
             vel: The desired speed to get there in rad/s (when in POSITION_VELOCITY mode)
             acc: The desired acceleration to get there in rad/s/s, ish (when in POSITION_VELOCITY mode)
         """
-        
+
         if np.abs(pos) >= self.motor_params["P_max"]:
             raise RuntimeError("Cannot control using position mode for angles with magnitude greater than " + str(self.motor_params["P_max"]) + "rad!")
         if np.abs(vel) >= self.motor_params["V_max"]:
             raise RuntimeError("Cannot control velocities with magnitude greater than " + str(self.motor_params["V_max"]) + "rad/s!")
-        
+
         pos = (pos / self.rad_per_Eang)
         vel = (vel / self.radps_per_ERPM)
         acc = (acc / self.radps_per_ERPM)
@@ -1224,14 +1224,14 @@ class TMotorManager_servo_serial():
         elif self._control_state == SERVO_SERIAL_CONTROL_STATE.POSITION:
             self.comm_set_position(pos)
         else:
-            raise RuntimeError("Attempted to send position command without entering position control " + self.device_info_string()) 
+            raise RuntimeError("Attempted to send position command without entering position control " + self.device_info_string())
 
     def set_output_torque_newton_meters(self, torque):
         """
         Update the current command to the desired current, based on the requested torque.
         Note, this does not send a command, it updates the TMotorManager's saved command,
         which will be sent when update() is called.
-        
+
         Args:
             torque: The desired output torque in Nm.
         """
@@ -1241,7 +1241,7 @@ class TMotorManager_servo_serial():
     def set_motor_torque_newton_meters(self, torque):
         """
         Version of set_output_torque that accounts for gear ratio to control motor-side torque
-        
+
         Args:
             torque: The desired motor-side torque in Nm.
         """
@@ -1250,7 +1250,7 @@ class TMotorManager_servo_serial():
     def set_motor_angle_radians(self, pos):
         """
         Wrapper for set_output_angle that accounts for gear ratio to control motor-side angle
-        
+
         Args:
             pos: The desired motor-side position in rad.
         """
@@ -1259,7 +1259,7 @@ class TMotorManager_servo_serial():
     def set_motor_velocity_radians_per_second(self, vel):
         """
         Wrapper for set_output_velocity that accounts for gear ratio to control motor-side velocity
-        
+
         Args:
             vel: The desired motor-side velocity in rad/s.
         """
@@ -1268,7 +1268,7 @@ class TMotorManager_servo_serial():
     def get_motor_angle_radians(self):
         """
         Wrapper for get_output_angle that accounts for gear ratio to get motor-side angle
-        
+
         Returns:
             The most recently updated motor-side angle in rad.
         """
@@ -1277,7 +1277,7 @@ class TMotorManager_servo_serial():
     def get_motor_velocity_radians_per_second(self):
         """
         Wrapper for get_output_velocity that accounts for gear ratio to get motor-side velocity
-        
+
         Returns:
             The most recently updated motor-side velocity in rad/s.
         """
@@ -1286,7 +1286,7 @@ class TMotorManager_servo_serial():
     def get_motor_acceleration_radians_per_second_squared(self):
         """
         Wrapper for get_output_acceleration that accounts for gear ratio to get motor-side acceleration
-        
+
         Returns:
             The most recently updated motor-side acceleration in rad/s/s.
         """
@@ -1295,7 +1295,7 @@ class TMotorManager_servo_serial():
     def get_motor_torque_newton_meters(self):
         """
         Wrapper for get_output_torque that accounts for gear ratio to get motor-side torque
-        
+
         Returns:
             The most recently updated motor-side torque in Nm.
         """
@@ -1373,7 +1373,7 @@ class TMotorManager_servo_serial():
     # motor-side variables
     angle_motorside = property(get_motor_angle_radians, set_motor_angle_radians, doc="motor_angle_radians")
     """Motor-side angle in rad"""
-    
+
     velocity_motorside = property (get_motor_velocity_radians_per_second, set_motor_velocity_radians_per_second, doc="motor_velocity_radians_per_second")
     """Motor-side velocity in rad/s"""
 
@@ -1382,20 +1382,3 @@ class TMotorManager_servo_serial():
 
     torque_motorside = property(get_motor_torque_newton_meters, set_motor_torque_newton_meters, doc="motor_torque_newton_meters")
     """Motor-side torque in Nm"""
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
