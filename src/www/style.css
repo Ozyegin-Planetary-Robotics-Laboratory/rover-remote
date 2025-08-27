@@ -665,6 +665,16 @@ h1 {
 }
 /* #endregion */
 
+/* #region Science Screen */
+#ScienceSensorsSection{
+  display: flex;
+  flex-direction: column;
+}
+.ScienceDataSpanClass{
+  margin: 0.5rem 0;
+}
+/* #endregion */
+
 /* #region Scrollbar */
 /* width */
 ::-webkit-scrollbar {

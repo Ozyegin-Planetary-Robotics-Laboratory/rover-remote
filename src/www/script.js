@@ -7,42 +7,42 @@ const screens = [
       </div>
     `
   },
-  { id: "MobileScreen",
-    html: `
-      <div id="MobileScreen">
-        <div class="header">
+  // { id: "MobileScreen",
+  //   html: `
+  //     <div id="MobileScreen">
+  //       <div class="header">
 
-          <div class="control-panel">
-            <button id="emergency-btn">EMERGENCY STOP</button>
-            <button id="connect-btn">CONNECT</button>
-          </div>
-        </div>
-        <div id="joystick-container">
-          <div class="horizontal-axis"></div>
-          <div class="vertical-axis"></div>
-          <div id="joystick-knob">STOP</div>
-        </div>
+  //         <div class="control-panel">
+  //           <button id="emergency-btn">EMERGENCY STOP</button>
+  //           <button id="connect-btn">CONNECT</button>
+  //         </div>
+  //       </div>
+  //       <div id="joystick-container">
+  //         <div class="horizontal-axis"></div>
+  //         <div class="vertical-axis"></div>
+  //         <div id="joystick-knob">STOP</div>
+  //       </div>
 
-        <div id="colorpicker-container">
-          <input type="text" id="html5colorpicker" onchange="clickColor(0, -1, -1, 5)" value=""
-            style="width:60%;height:15%;">
-          <input type="text" id="html5armcom" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
-          <input type="text" id="motorparam" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
-        </div>
-        <input type="checkbox" id='kolkontrol'></input>
-        <div class="footer">
-          <div id="output">X: 0.00, Y: 0.00</div>
-          <div id="ConnectionStatus">Not connected</div>
-          <div class="settings">
-            <label for="ip-address">Bridge IP Address:</label>
-            <input type="text" id="ip-address" value="192.168.1.3">
-            <label for="port">Bridge WebSocket Port:</label>
-            <input type="number" id="port" value="8765">
-          </div>
-        </div>
-      </div>
-    `
-  },
+  //       <div id="colorpicker-container">
+  //         <input type="text" id="html5colorpicker" onchange="clickColor(0, -1, -1, 5)" value=""
+  //           style="width:60%;height:15%;">
+  //         <input type="text" id="html5armcom" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
+  //         <input type="text" id="motorparam" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
+  //       </div>
+  //       <input type="checkbox" id='kolkontrol'></input>
+  //       <div class="footer">
+  //         <div id="output">X: 0.00, Y: 0.00</div>
+  //         <div id="ConnectionStatus">Not connected</div>
+  //         <div class="settings">
+  //           <label for="ip-address">Bridge IP Address:</label>
+  //           <input type="text" id="ip-address" value="192.168.1.3">
+  //           <label for="port">Bridge WebSocket Port:</label>
+  //           <input type="number" id="port" value="8765">
+  //         </div>
+  //       </div>
+  //     </div>
+  //   `
+  // },
   { id: "CameraScreen",
     html: `
       <div class="CameraContainer" id="video-container">
@@ -83,7 +83,7 @@ const screens = [
     </div>
     `
   },
-  {id: "StatusScreen",
+  { id: "StatusScreen",
     html: `
     <div id="StatusScreen">
       <div id="RoverStatusDiv">
@@ -176,8 +176,7 @@ const screens = [
     </div>
     `
   },
-  {
-    id: "PanTiltScreen",
+  { id: "PanTiltScreen",
     html: `
     <div id="PanTiltScreen">
       <div class="PanTiltContainer">
@@ -191,6 +190,20 @@ const screens = [
       </div>
     </div>
     `
+  },
+  { id: "ScienceScreen",
+    html: `
+    <div id="ScienceScreen">
+      <div id="ScienceSensorsSection" class="RoverStatusSectionClass">
+        <span class="ScienceDataSpanClass" id="LoadCell1">Load cell 1: </span>
+        <span class="ScienceDataSpanClass" id="LoadCell2">Load cell 2: </span>
+        <span class="ScienceDataSpanClass" id="AirHumidity">Air humidity: </span>
+        <span class="ScienceDataSpanClass" id="AirTemperature">Air temperature: </span>
+        <span class="ScienceDataSpanClass" id="SoilHumidity">Soil humidty: </span>
+      </div>
+    </div>
+    `
+
   }
 ]
 
@@ -343,6 +356,9 @@ let locoMotorDirection = ""
 // CameraScreen
 var cameraPlayer1, cameraPlayer2, cameraPlayer3
 
+// ScienceScreen
+let scienceScreenOn = false
+
 // Connection
 const connectionStatus = document.getElementById('ConnectionStatus');
 const ipAdress = document.location.host.split(':')[0]
@@ -357,7 +373,8 @@ AddWindow()
 // SelectScreen("screenDiv1", "ManipulatorScreen")
 // SelectScreen("screenDiv1", "StatusScreen")
 // SelectScreen("screenDiv1", "CameraScreen")
-SelectScreen("screenDiv1", "PanTiltScreen")
+// SelectScreen("screenDiv1", "PanTiltScreen")
+SelectScreen("screenDiv1", "ScienceScreen")
 
 //#region FUNCTIONS
 
@@ -457,6 +474,9 @@ function SelectScreen(screenDivId, screenId) {
       let url3 = 'ws://' + document.location.hostname + ':8086/';
       cameraPlayer3 = new JSMpeg.Player(url3, { canvas: canvas3 });
     }, 2000);
+  }
+  else if(screenId == "ScienceScreen"){
+    scienceScreenOn = true
   }
   
   UpdateScreenSelectBoxOptions()
@@ -738,7 +758,17 @@ function connectToBridge() {
           connectionStatus.textContent = 'Connected';
           connectionStatus.classList.add('connected');
         } else if (response.status === 'still_connected') {
-	  console.log(response.message);
+	        
+          console.log(response.message);
+
+          const scienceData = response.message.science
+          if(scienceScreenOn && scienceData){
+            document.getElementById("LoadCell1").textContent = scienceData.loadCell1
+            document.getElementById("LoadCell2").textContent = scienceData.loadCell2
+            document.getElementById("AirHumidity").textContent = scienceData.airHumidity
+            document.getElementById("AirTemperature").textContent = scienceData.airTemperature
+            document.getElementById("SoilHumidity").textContent = scienceData.soilHumidity
+          }
         } else if (response.status === 'sent') {
           // Data was successfully sent to the rover
           connectionStatus.textContent = `Sent: Linear=${response.linear.toFixed(2)}, Angular=${response.angular.toFixed(2)}`;
