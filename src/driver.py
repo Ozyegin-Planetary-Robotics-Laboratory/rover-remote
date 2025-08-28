@@ -115,12 +115,6 @@ async def handle_websocket(websocket, path=None):
                         locoAngular = value
                         mp = parameter
 
-                    #Science
-                    elif command == "ScienceUp":
-                        scictl(b"k")
-                    elif command == "ScienceDown":
-                        scictl(b"i")
-
                     elif command == "DOF1Left":
                         set_velocity_loop(12, armSpeed/3 * value, 200)
                         DOFs[0] = True
@@ -179,7 +173,21 @@ async def handle_websocket(websocket, path=None):
                     elif command == "PanTiltRight":
                         # (b'RIGHT\n')
                         pass
+                    
+                    elif command == "ScienceUp":
+                        science_dc_ctl('SCIENCEUP')
+                        pass
+                    elif command == "ScienceDown":
+                        science_dc_ctl('SCIENCEDOWN')
+                        pass
 
+                    elif command == "DrillStart":
+                        science_dc_ctl('DRILLSTART')
+                        pass
+                    elif command == "DrillStop":
+                        science_dc_ctl('DRILLSTOP')
+                        pass
+                    
                     elif command == "Led":
                         change_color(b'x\n')
                         timer1 = None
