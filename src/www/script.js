@@ -1,51 +1,51 @@
 // Windows
-const screens = [
-    {
+const screens = [{
         id: "Blank",
         html: `
       <div class="BlankScreenClass">
         <span class="SelectScreenSpanClass">Select a screen</span
       </div>
     `
-  },
-  // { id: "MobileScreen",
-  //   html: `
-  //     <div id="MobileScreen">
-  //       <div class="header">
+    },
+    // { id: "MobileScreen",
+    //   html: `
+    //     <div id="MobileScreen">
+    //       <div class="header">
 
-  //         <div class="control-panel">
-  //           <button id="emergency-btn">EMERGENCY STOP</button>
-  //           <button id="connect-btn">CONNECT</button>
-  //         </div>
-  //       </div>
-  //       <div id="joystick-container">
-  //         <div class="horizontal-axis"></div>
-  //         <div class="vertical-axis"></div>
-  //         <div id="joystick-knob">STOP</div>
-  //       </div>
+    //         <div class="control-panel">
+    //           <button id="emergency-btn">EMERGENCY STOP</button>
+    //           <button id="connect-btn">CONNECT</button>
+    //         </div>
+    //       </div>
+    //       <div id="joystick-container">
+    //         <div class="horizontal-axis"></div>
+    //         <div class="vertical-axis"></div>
+    //         <div id="joystick-knob">STOP</div>
+    //       </div>
 
-  //       <div id="colorpicker-container">
-  //         <input type="text" id="html5colorpicker" onchange="clickColor(0, -1, -1, 5)" value=""
-  //           style="width:60%;height:15%;">
-  //         <input type="text" id="html5armcom" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
-  //         <input type="text" id="motorparam" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
-  //       </div>
-  //       <input type="checkbox" id='kolkontrol'></input>
-  //       <div class="footer">
-  //         <div id="output">X: 0.00, Y: 0.00</div>
-  //         <div id="ConnectionStatus">Not connected</div>
-  //         <div class="settings">
-  //           <label for="ip-address">Bridge IP Address:</label>
-  //           <input type="text" id="ip-address" value="192.168.1.3">
-  //           <label for="port">Bridge WebSocket Port:</label>
-  //           <input type="number" id="port" value="8765">
-  //         </div>
-  //       </div>
-  //     </div>
-  //   `
-  // },
-  { id: "CameraScreen",
-    html: `
+    //       <div id="colorpicker-container">
+    //         <input type="text" id="html5colorpicker" onchange="clickColor(0, -1, -1, 5)" value=""
+    //           style="width:60%;height:15%;">
+    //         <input type="text" id="html5armcom" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
+    //         <input type="text" id="motorparam" onchange="clickColor(0, -1, -1, 5)" value="" style="width:60%;height:15%;">
+    //       </div>
+    //       <input type="checkbox" id='kolkontrol'></input>
+    //       <div class="footer">
+    //         <div id="output">X: 0.00, Y: 0.00</div>
+    //         <div id="ConnectionStatus">Not connected</div>
+    //         <div class="settings">
+    //           <label for="ip-address">Bridge IP Address:</label>
+    //           <input type="text" id="ip-address" value="192.168.1.3">
+    //           <label for="port">Bridge WebSocket Port:</label>
+    //           <input type="number" id="port" value="8765">
+    //         </div>
+    //       </div>
+    //     </div>
+    //   `
+    // },
+    {
+        id: "CameraScreen",
+        html: `
       <div class="CameraContainer" id="video-container">
 
         <div class="video-block">
@@ -84,9 +84,10 @@ const screens = [
      <div id=ControllerScreenButtons></div>
     </div>
     `
-  },
-  { id: "StatusScreen",
-    html: `
+    },
+    {
+        id: "StatusScreen",
+        html: `
     <div id="StatusScreen">
       <div id="RoverStatusDiv">
         <div class="RoverStatusSectionClass" id="LocoStatusDiv">
@@ -178,9 +179,10 @@ const screens = [
 
     </div>
     `
-  },
-  { id: "PanTiltScreen",
-    html: `
+    },
+    {
+        id: "PanTiltScreen",
+        html: `
     <div id="PanTiltScreen">
       <div class="PanTiltContainer">
         <div id="RoverImgPanTilt">
@@ -193,9 +195,10 @@ const screens = [
       </div>
     </div>
     `
-  },
-  { id: "ScienceScreen",
-    html: `
+    },
+    {
+        id: "ScienceScreen",
+        html: `
     <div id="ScienceScreen">
       <div id="ScienceSensorsSection" class="RoverStatusSectionClass">
         <span class="ScienceDataSpanClass" id="LoadCell1">Load cell 1: </span>
@@ -203,11 +206,17 @@ const screens = [
         <span class="ScienceDataSpanClass" id="AirHumidity">Air humidity: </span>
         <span class="ScienceDataSpanClass" id="AirTemperature">Air temperature: </span>
         <span class="ScienceDataSpanClass" id="SoilHumidity">Soil humidty: </span>
+        <button onClick='ScienceCommandAdder("ScienceDown")'>Science Asagi Indirmeye Basla</button>
+        <button onClick='ScienceCommandAdder("ScienceUp")'>Science Yukari Goturmeye Basla</button>
+        <button onClick='ScienceCommandAdder("ScienceStop")'>Science Hareketi Durdur</button>
+        <button onClick='ScienceCommandAdder("DrillStart")'>Science Matkap Dondur</button>
+        <button onClick='ScienceCommandAdder("DrillStop")>Science Matkap Durdur</button>
+    
       </div>
     </div>
     `
 
-  }
+    }
 ]
 
 let screenSelectBoxString = "";
@@ -217,8 +226,7 @@ let windowId = 0;
 const windowSizeIncrement = 10;
 let currentWindows = [];
 
-const colorConfigs = [
-    {
+const colorConfigs = [{
         type: "latency",
         tresholds: [250, 1000],
     },
@@ -373,6 +381,7 @@ var cameraPlayer1, cameraPlayer2, cameraPlayer3
 
 // ScienceScreen
 let scienceScreenOn = false
+let scienceCommandStrings = []
 
 // Connection
 const connectionStatus = document.getElementById("ConnectionStatus");
@@ -487,16 +496,15 @@ function SelectScreen(screenDivId, screenId) {
             let url2 = "ws://" + document.location.hostname + ":8084/";
             cameraPlayer2 = new JSMpeg.Player(url2, { canvas: canvas2 });
 
-      let canvas3 = document.getElementById('video-canvas3');
-      let url3 = 'ws://' + document.location.hostname + ':8086/';
-      cameraPlayer3 = new JSMpeg.Player(url3, { canvas: canvas3 });
-    }, 2000);
-  }
-  else if(screenId == "ScienceScreen"){
-    scienceScreenOn = true
-  }
-  
-  UpdateScreenSelectBoxOptions()
+            let canvas3 = document.getElementById('video-canvas3');
+            let url3 = 'ws://' + document.location.hostname + ':8086/';
+            cameraPlayer3 = new JSMpeg.Player(url3, { canvas: canvas3 });
+        }, 2000);
+    } else if (screenId == "ScienceScreen") {
+        scienceScreenOn = true
+    }
+
+    UpdateScreenSelectBoxOptions()
 }
 
 function UpdateScreenSelectBoxOptions() {
@@ -719,10 +727,10 @@ function SwitchLocoMotors(direction) {
         "var(--color2)";
     if (horizontal)
         document.getElementById("SwitchLocoHorizontal").style.backgroundColor =
-            "var(--color-blue)";
+        "var(--color-blue)";
     if (vertical)
         document.getElementById("SwitchLocoVertical").style.backgroundColor =
-            "var(--color-blue)";
+        "var(--color-blue)";
 }
 //#endregion
 
@@ -734,6 +742,7 @@ function moveLeft(button) {
         block.parentNode.insertBefore(block, prev);
     }
 }
+
 function moveRight(button) {
     const block = button.closest(".video-block");
     const next = block.nextElementSibling;
@@ -741,6 +750,7 @@ function moveRight(button) {
         block.parentNode.insertBefore(next, block);
     }
 }
+
 function downloadCanvas(canvas, filename) {
     const image = canvas.toDataURL("image/png");
     const a = document.createElement("a");
@@ -748,6 +758,7 @@ function downloadCanvas(canvas, filename) {
     a.download = filename;
     a.click();
 }
+
 function downloadAllCanvases() {
     const canvas1 = document.getElementById("video-canvas");
     const canvas2 = document.getElementById("video-canvas2");
@@ -771,7 +782,7 @@ function connectToBridge() {
         socket = new WebSocket(`ws://${ipAdress}:${port}`);
 
         // Connection opened
-        socket.addEventListener("open", function (event) {
+        socket.addEventListener("open", function(event) {
             isConnected = true;
             connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
             connectionStatus.classList.add("connected");
@@ -783,7 +794,7 @@ function connectToBridge() {
         });
 
         // Listen for messages from the server
-        socket.addEventListener("message", function (event) {
+        socket.addEventListener("message", function(event) {
             try {
                 const response = JSON.parse(event.data);
                 // console.log('Message from bridge:', response);
@@ -801,7 +812,7 @@ function connectToBridge() {
                     }
 
                     const scienceData = response.message.science
-                    if(scienceScreenOn && scienceData){
+                    if (scienceScreenOn && scienceData) {
                         document.getElementById("LoadCell1").textContent = scienceData.loadCell1
                         document.getElementById("LoadCell2").textContent = scienceData.loadCell2
                         document.getElementById("AirHumidity").textContent = scienceData.airHumidity
@@ -854,7 +865,7 @@ function connectToBridge() {
         // });
 
         // Connection error
-        socket.addEventListener("error", function (error) {
+        socket.addEventListener("error", function(error) {
             connectionStatus.textContent = `Connection error`;
             console.error("WebSocket error:", error);
         });
@@ -916,11 +927,18 @@ function ColorCalculator(type, value) {
 }
 //#endregion
 
+function ScienceCommandAdder(command) {
+    if (!scienceCommandStrings.includes(command)) {
+        scienceCommandStrings.push(command)
+    }
+}
+
 //#endregion
 
 // Gamepad
 setInterval(() => {
-    // console.log(navigator.getGamepads())
+    scienceCommandStrings = []
+        // console.log(navigator.getGamepads())
     const gamepads = navigator.getGamepads();
     const playerNumberElement = document.getElementById("PlayerNumber");
     const ControllerScreenButtonsElement = document.getElementById(
@@ -1099,6 +1117,8 @@ setInterval(() => {
     }
 
     // console.log(currentCommandStrings);
+
+    currentCommandStrings = currentCommandStrings.concat(scienceCommandStrings)
 
     //send commmands
     if (isConnected) {
