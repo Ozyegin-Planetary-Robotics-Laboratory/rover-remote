@@ -1,7 +1,23 @@
 from dynamixel_sdk import * 
+import pyudev
+
+context = pyudev.Context()
+
+# Find dynamixel usb 
+for device in context.list_devices(subsystem='tty'):
+    path = device.get('ID_PATH')
+    serialId = device.get('ID_SERIAL')
+    if path and serialId:
+        # dynamixel
+        if "AD01UZ2Y" in serialId:
+            dynamixelUSB = device.device_node
+            print("dynamixel: " + device.device_node)
+        print(f"{device.device_node} - {serial} - {path}")
+
+
 
 # Configs
-DEVICENAME = '/dev/ttyUSB0'
+DEVICENAME = dynamixelUSB
 BAUDRATE = 1000000
 DXL_ID = 1
 PROTOCOL_VERSION = 1.0
