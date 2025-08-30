@@ -11,8 +11,8 @@ from servo_serial import *
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB2",
-                     "mv_3": "/dev/ttyUSB3", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB3",
+                     "mv_3": "/dev/ttyUSB2", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
 
 #motors_dictionary = {"mv_1":motors_dictionary["mv_1"], "mv_2": motors_dictionary["mv_2"],
 #		             "mv_3": motors_dictionary["mv_3"], "mv_4": motors_dictionary["mv_4"]}
@@ -54,7 +54,7 @@ def identify_arduinos():
                     color_port = port
                 elif "SAYINSDISI" in response.upper():
                     science_dc_port = port
-                elif "SAYINSSENSOR" in response.upper():
+                elif "SAYINS" in response.upper():
                     science_sensor_port = port
 
         except Exception as e:
@@ -85,15 +85,55 @@ if color_port:
         else:
             color_serial.write(c)
 else:
-    def change_color(*args):
-        print("No color arduino detected")
+    def change_color(c):
+        return 0
+    print("No golor")
 
-if science_dc_port:
-    science_dc_serial = serial.Serial(port=color_port, baudrate=115200)
+
 
 
 if science_sensor_port:
-    science_sensor_serial = serial.Serial(port=color_port, baudrate=115200)
+    science_sensor_serial = serial.Serial(port=science_sensor_port, baudrate=115200)
+    def read_sensor_info():
+        science_sensor_serial.write(b'\n')
+        line = science_sensor_serial.readline().decode().strip()
+        print("---", line)
+
+        if line.startswith("HX1:"):
+            parts = line.split(',')
+            hx1 = int(parts[0].split(':')[1])
+            hx2 = int(parts[1].split(':')[1])
+            a3 = int(parts[2].split(':')[1])
+            temp = int(parts[3].split(':')[1])
+            return {"HX1":hx1,"HX2":hx2,"A3":a3,"TEMP":temp}
+        return None
+else:
+    def read_sensor_info():
+        return 0
+    print("No science-sensor detected")
+
+if science_dc_port:
+    science_dc_serial = serial.Serial(port=science_dc_port, baudrate=115200)
+    def science_dc_ctl(c):
+        if c=="DOWN":
+            science_dc_serial.write(b"l\n")
+        if c=="UP":
+            science_dc_serial.write(b"o\n")
+        if c=="DRILLSTART":
+            science_dc_serial.write(b"i\n")
+        if c=="DRILLSTOP":
+            science_dc_serial.write(b"k\n")
+        if c=="SYSTEMSTOP":
+            science_dc_serial.write(b"x\n")
+        if science_sensor_port:
+            if c=="GRIPPEROPEN":
+                science_sensor_serial.write(b"o\n")
+            if c=="GRIPPERCLOSE":
+                science_sensor_serial.write(b"l\n")
+        return c
+else:
+    def science_dc_ctl(c):
+        return 0
 
 #del motors_dictionary["color"]
 port_list = list(motors_dictionary.values())
@@ -263,12 +303,12 @@ def get_loco_motor_info():
 
 if __name__ == "__main__":
 
-    #start_uart_com()
+    start_devs()
     #read_motors_dictionary()
-    if not debug:
+    if 1:
         start_devs()
-        for _ in range(180):
-            velocity_control_loco(0.0,-0.2, "")
+        for _ in range(1800):
+            velocity_control_loco(0.1,0.0, "")
         print(get_loco_motor_info())
         #change_color(b'g')
         stop_uart_com()

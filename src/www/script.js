@@ -46,33 +46,39 @@ const screens = [{
     {
         id: "CameraScreen",
         html: `
-      <div class="CameraContainer" id="video-container">
+        <div class="CameraContainer" id="video-container">
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas" crossorigin="anonymous"></canvas>
           <div class="CameraControlsDiv">
-            <button class="ButtonClass" onclick="moveLeft(this)"><</button>
-            <button class="ButtonClass" onclick="moveRight(this)">></button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveLeft(this)"><</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveRight(this)">></button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="CameraRotate(1)">🔃</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="document.getElementById('video-canvas').width=300">➗</button>
+
           </div>
         </div>
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas2" crossorigin="anonymous"></canvas>
           <div class="CameraControlsDiv">
-            <button class="ButtonClass" onclick="moveLeft(this)"><</button>
-            <button class="ButtonClass" onclick="moveRight(this)">><button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveLeft(this)"><</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveRight(this)">></button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="CameraRotate(2)">🔃</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="document.getElementById('video-canvas2').width=300">➗</button>
+
           </div>
         </div>
 
         <div class="video-block">
           <canvas class="vid" id="video-canvas3" crossorigin="anonymous"></canvas>
           <div class="CameraControlsDiv">
-            <button class="ButtonClass" onclick="moveLeft(this)"><<button>
-            <button class="ButtonClass" onclick="moveRight(this)">></button>
-          </div>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveLeft(this)"><</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="moveRight(this)">></button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="CameraRotate(3)">🔃</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="document.getElementById('video-canvas3').width=300">➗</button>
+
         </div>
-      <button onclick="downloadAllCanvases()">Download All Frames</button>
-    </div>
     `,
     },
     {
@@ -284,6 +290,11 @@ const commandFunctions = [
     { id: "PanTiltUp", type: "Button" },
     { id: "PanTiltLeft", type: "Button" },
     { id: "PanTiltRight", type: "Button" },
+    
+    { id: "ManipulatorSpeedIncrease", type: "Button" },
+    { id: "ManipulatorSpeedDecrease", type: "Button" },
+
+
 ];
 
 const controllerConfigs = [
@@ -359,6 +370,8 @@ const controllerConfigs = [
             { axis: 1, func: "LocoLinear" },
             { axis: 2, func: "DOF1" },
             { axis: 3, func: "DOF2" },
+            { axis: 8, func: "ManipulatorSpeedDecrease" },
+            { axis: 9, func: "ManipulatorSpeedIncrease" },
         ],
     },
 ];
@@ -392,13 +405,9 @@ const latencySpan = document.getElementById("LatencySpan");
 let latestTimestamp = 0;
 
 AddWindow();
-// SelectScreen("screenDiv1", "MobileScreen")
-// SelectScreen("screenDiv1", "ControllerScreen")
-// SelectScreen("screenDiv1", "ManipulatorScreen")
-// SelectScreen("screenDiv1", "StatusScreen")
-// SelectScreen("screenDiv1", "CameraScreen")
-// SelectScreen("screenDiv1", "PanTiltScreen")
-SelectScreen("screenDiv1", "ScienceScreen")
+SelectScreen("screenDiv1", "StatusScreen")
+AddWindow();
+SelectScreen("screenDiv2", "CameraScreen")
 
 //#region FUNCTIONS
 
@@ -767,6 +776,22 @@ function downloadAllCanvases() {
     if (canvas2) downloadCanvas(canvas2, "frame2.png");
     if (canvas3) downloadCanvas(canvas3, "frame3.png");
 }
+
+function CameraRotate(cam) {
+  const el = document.getElementById("video-canvas" + cam);
+
+  // If not already set, start at 0
+  let angle = el.dataset.rotation ? parseInt(el.dataset.rotation) : 0;
+  
+  // Add 90 degrees
+  angle = (angle + 90) % 360; // keeps it in [0,360)
+  
+  // Save the new angle
+  el.dataset.rotation = angle;
+  
+  // Apply rotation
+  el.style.transform = `rotate(${angle}deg)`;
+}
 //#endregion
 
 //#region Connection
@@ -784,13 +809,13 @@ function connectToBridge() {
         // Connection opened
         socket.addEventListener("open", function(event) {
             isConnected = true;
-            connectionStatus.textContent = `Connected to bridge at ${ipAddress}:${port}`;
+            connectionStatus.textContent = `Connected to bridge at ${ipAdress}:${port}`;
             connectionStatus.classList.add("connected");
-            connectBtn.textContent = "DISCONNECT";
-            connectBtn.classList.add("connected");
+            // connectBtn.textContent = "DISCONNECT";
+            // connectBtn.classList.add("connected");
 
             // Start sending joystick data
-            startSendingData();
+            // startSendingData();
         });
 
         // Listen for messages from the server

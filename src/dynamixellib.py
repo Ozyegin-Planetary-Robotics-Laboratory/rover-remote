@@ -12,7 +12,7 @@ for device in context.list_devices(subsystem='tty'):
         if "AD01UZ2Y" in serialId:
             dynamixelUSB = device.device_node
             print("dynamixel: " + device.device_node)
-        print(f"{device.device_node} - {serial} - {path}")
+        # print(f"{device.device_node} - {serial} - {path}")
 
 
 
@@ -46,7 +46,7 @@ if not portHandler.setBaudRate(BAUDRATE):
 dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID, ADDR_TORQUE_ENABLE, 1)
 if dxl_comm_result != COMM_SUCCESS:
     print(f"{packetHandler.getTxRxResult(dxl_comm_result)}")
-    exit()
+    # exit()
 
 # Set Wheel Mode
 packetHandler.write2ByteTxRx(portHandler, DXL_ID, ADDR_CW_ANGLE_LIMIT, 0)

@@ -12,8 +12,8 @@ from threading import Timer
 import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, get_loco_motor_info, dev_list, im
-from arm_lib_can import set_velocity_loop, start_bus, start_bus, set_current_brake, motor_situations, can_recive
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, get_loco_motor_info, dev_list, im, science_sensor_serial
+from arm_lib_can import set_velocity_loop, start_bus, bus, set_current_brake, motor_situations, can_recive
 
 def scictl(c):
     return c
@@ -37,15 +37,13 @@ armSpeed = 10
 latestArmCrash = 0
 limitSwitchIgnoreInterval = 20
 bus= 0
-#start_bus()
 
+armAvaliable = True # KOLU BUNLA AÇ
 
+if armAvaliable:
+    start_bus() # KOL
 
-if bus:
-    armAvaliable=True
-else:
-    armAvaliable=False
-#start_devs()
+start_devs() # LOCO
 try:
     lsu_ser=serial.Serial(LSU_PORT, 115200, timeout=0.1)
     limitswitch=True
@@ -72,7 +70,8 @@ for device in context.list_devices(subsystem='tty'):
         elif "1a86_USB_Serial" in serialId:
             print("nano: " + device.device_node)
 
-        print(f"{device.device_node} - {serial} - {path}")
+        # print(f"{device.device_node} - {serial} - {path}")
+        print(f"{device.device_node} - {path}")
 
 
 # Handle WebSocket connections - updated to make path parameter optional
@@ -86,7 +85,7 @@ async def handle_websocket(websocket, path=None):
     try:
         await websocket.send(json.dumps({"status": "connected", "message": "Connected to bridge"}))
         change_color(b'x\n')
-        change_color('green')
+        change_color('red')
         async for message in websocket:
             #print(message)
             try:
@@ -150,43 +149,37 @@ async def handle_websocket(websocket, path=None):
                         DOFs[3] = True
 
                     elif command == "EndEffectorCCW":
-                        dynamixellib.set_speed(int(30 * value))
+                        dynamixellib.set_speed(int(-30 * value))
                         dynamixel = True
                     elif command == "EndEffectorCW":
                         dynamixellib.set_speed(int(30 * value))
                         dynamixel = True
 
                     elif command == "GripperOpen":
-                        scictl(b'o\n')
+                        science_sensor_serial.write(b'o\n')
                     elif command == "GripperClose":
-                        scictl(b'l\n')
+                        science_sensor_serial.write(b'l\n')
+
 
                     elif command == "PanTiltUp":
-                        # (b'UP\n')
-                        pass
+                        science_sensor_serial.write(b'UP\n')
                     elif command == "PanTiltDown":
-                        # (b'DOWN\n')
-                        pass
-                    elif command == "PanTiltLeft":
-                        # (b'LEFT\n')
-                        pass
+                        science_sensor_serial.write(b'DOWN\n')
+                    elif command == "PanTiltLeft": 
+                        science_sensor_serial.write(b'LEFT\n')
                     elif command == "PanTiltRight":
-                        # (b'RIGHT\n')
-                        pass
-                    
-                    elif command == "ScienceUp":
-                        science_dc_ctl('SCIENCEUP')
-                        pass
-                    elif command == "ScienceDown":
-                        science_dc_ctl('SCIENCEDOWN')
-                        pass
+                        science_sensor_serial.write(b'RIGHT\n')
 
-                    elif command == "DrillStart":
-                        science_dc_ctl('DRILLSTART')
-                        pass
-                    elif command == "DrillStop":
-                        science_dc_ctl('DRILLSTOP')
-                        pass
+                    # elif command == "ScienceUp":
+                    #     science_dc_ctl('SCIENCEUP')
+                    # elif command == "ScienceDown":
+                    #     science_dc_ctl('SCIENCEDOWN')
+                    # elif command == "ScienceStop":
+                    #     science_dc_ctl('SYSTEMSTOP')
+                    # elif command == "DrillStart":
+                    #     science_dc_ctl('DRILLSTART')
+                    # elif command == "DrillStop":
+                    #     science_dc_ctl('DRILLSTOP')
                     
                     elif command == "Led":
                         change_color(b'x\n')
@@ -221,7 +214,7 @@ async def handle_websocket(websocket, path=None):
                     dynamixelChanged = True
                 elif dynamixelChanged and not dynamixel:
                     dynamixelChanged = False
-                    dynamixellib.set_dynamixel_speed(1,"/dev/ttyUSB6",57600,0,"CW")
+                    dynamixellib.set_speed(0)
 
                 # Timestamp
                 timestamp = int(time.time() * 1000)
@@ -261,7 +254,7 @@ def CheckLimitSwitch():
     line = lsu_ser.readline()
     arduinoMessage = line.decode(errors="ignore")
     currentTime = int(time.time() * 1000)
-    print(arduinoMessage)
+    # print(arduinoMessage)
     if arduinoMessage == "1\r\n":
         if currentTime > limitSwitchIgnoreInterval + latestArmCrash:
             print("CRASH")
