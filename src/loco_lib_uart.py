@@ -11,8 +11,8 @@ from servo_serial import *
 
 motor_speeds = {"mv_1": 0, "mv_2": 0, "mv_3": 0, "mv_4": 0}
 
-motors_dictionary = {"mv_1": "/dev/ttyUSB1","mv_2": "/dev/ttyUSB3",
-                     "mv_3": "/dev/ttyUSB2", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
+motors_dictionary = {"mv_1": "/dev/ttyUSB0","mv_2": "/dev/ttyUSB7",
+                     "mv_3": "/dev/ttyUSB3", "mv_4": "/dev/ttyUSB4"}  # Put serial ports. None means no port
 
 #motors_dictionary = {"mv_1":motors_dictionary["mv_1"], "mv_2": motors_dictionary["mv_2"],
 #		             "mv_3": motors_dictionary["mv_3"], "mv_4": motors_dictionary["mv_4"]}

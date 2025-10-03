@@ -7,12 +7,11 @@ import signal
 import os
 import time
 import serial
-import dynamixellib
 from threading import Timer
 import pyudev
 
 
-from loco_lib_uart import velocity_control_loco, start_devs, change_color, get_loco_motor_info, dev_list, im, science_sensor_serial
+from loco_lib_uart import velocity_control_loco, start_devs, change_color, get_loco_motor_info, dev_list, im
 from arm_lib_can import set_velocity_loop, start_bus, bus, set_current_brake, motor_situations, can_recive
 
 def scictl(c):
@@ -42,6 +41,11 @@ armAvaliable = True # KOLU BUNLA AÇ
 
 if armAvaliable:
     start_bus() # KOL
+    import dynamixellib
+
+from loco_lib_uart import science_sensor_serial
+
+
 
 start_devs() # LOCO
 try:
@@ -218,6 +222,7 @@ async def handle_websocket(websocket, path=None):
 
                 # Timestamp
                 timestamp = int(time.time() * 1000)
+                #print(limitswitch, lsu_ser)
                 if armAvaliable:
                     can_recive()
 
@@ -254,7 +259,7 @@ def CheckLimitSwitch():
     line = lsu_ser.readline()
     arduinoMessage = line.decode(errors="ignore")
     currentTime = int(time.time() * 1000)
-    # print(arduinoMessage)
+    #print(line)
     if arduinoMessage == "1\r\n":
         if currentTime > limitSwitchIgnoreInterval + latestArmCrash:
             print("CRASH")

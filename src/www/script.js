@@ -53,7 +53,7 @@ const screens = [{
           <div class="CameraControlsDiv">
             <button class="ButtonClass" style="margin-top: 200px" onclick="moveLeft(this)"><</button>
             <button class="ButtonClass" style="margin-top: 200px" onclick="moveRight(this)">></button>
-            <button class="ButtonClass" style="margin-top: 200px" onclick="CameraRotate(1)">🔃</button>
+            <button class="ButtonClass" style="margin-top: 200px" onclick="CameraRotate('')">🔃</button>
             <button class="ButtonClass" style="margin-top: 200px" onclick="document.getElementById('video-canvas').width=300">➗</button>
 
           </div>
